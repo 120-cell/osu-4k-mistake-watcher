@@ -11,7 +11,6 @@ from mistake import Keylock, Repeat, Skip
 from setting_handler import Setting_Handler, SETTINGS_PATH
 
 
- 
 def main():
     logging.basicConfig(level=logging.DEBUG)
     if os.path.isfile(SETTINGS_PATH):
