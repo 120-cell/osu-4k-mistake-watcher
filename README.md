@@ -1,1 +1,4 @@
-an app for identifying tapping mistakes while using 4-key in osu! standard.
+requires the keyboard module:
+`pip install keyboard`
+
+It needs to be run as administrator to read keystrokes while not in focus.
