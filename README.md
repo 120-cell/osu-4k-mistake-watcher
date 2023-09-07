@@ -1,0 +1,1 @@
+an app for identifying tapping mistakes while using 4-key in osu! standard.
