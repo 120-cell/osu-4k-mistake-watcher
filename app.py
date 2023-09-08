@@ -1,6 +1,7 @@
 
 from itertools import chain
 import keyboard as kb
+import mouse
 import logging
 from queue import Queue
 from _queue import Empty
@@ -8,6 +9,13 @@ import tkinter as tk
 import tkinter.ttk as ttk
 
 from mistake import Keylock, Repeat, Skip
+
+MOUSE_BUTTON_NAMES = {'left': 'Button-1', 
+                      'right':'Button-2', 
+                      'middle':'Button-3', 
+                      'x':'Button-X',
+                      'x2':'Button-X2'}
+MOUSE_REVERSE_NAMES = {val: key for key, val in MOUSE_BUTTON_NAMES.items()}
 
 class App(tk.Tk):
 
@@ -101,19 +109,26 @@ class App(tk.Tk):
         self.refresh_hooks()
         logging.debug(f'current binds: {self.settings.binds}')
         
+        
     def refresh_hooks(self):
         kb.unhook_all()
         for bind in self.settings.binds:
-            if bind is not None:
-                kb.on_press_key(bind, self.handle_event)
-                kb.on_release_key(bind, self.handle_event)
+            if bind in MOUSE_REVERSE_NAMES:
+                button = MOUSE_REVERSE_NAMES[bind]
+                on_mouse_button(button, self.handle_event)
+            elif bind:
+                kb.hook_key(bind, self.handle_event)
                 
                 
     def handle_event(self, event):
-        keyindex = self.settings.binds.index(event.name)
+        if isinstance(event, mouse.ButtonEvent):
+            bind = MOUSE_BUTTON_NAMES[event.button]
+            keyindex = self.settings.binds.index(bind)
+        else:
+            keyindex = self.settings.binds.index(event.name)
         
         #releases do not trigger mistakes
-        if event.event_type == kb.KEY_UP:
+        if event.event_type == kb.KEY_UP or event.event_type == mouse.UP:
             self.pressed[keyindex] = False
             return
         #repeated keydown events due to holding are not registered
@@ -182,18 +197,32 @@ def colour_dialog(keyindex):
         
 def workaround_read_event(suppress=False):
     queue = Queue(maxsize=1)
-    hooked = kb.hook(queue.put, suppress=suppress)
+    kb_hooked = kb.hook(queue.put, suppress=suppress)
+            
+    mouse_hooked = mouse.hook(lambda event: queue.put(event) if isinstance(event, mouse.ButtonEvent) else None)
     try:
         event = queue.get(timeout=3)
         return event
     except Empty:
         logging.info('key binding timed out')
     finally:
-        kb.unhook(hooked)
+        kb.unhook(kb_hooked)
+        mouse.unhook_all()
     
     
 def workaround_read_key(suppress=False):
     event = workaround_read_event(suppress)
-    if event:
-        return event.name or event.scan_code
+    if isinstance(event, mouse.ButtonEvent):
+        return MOUSE_BUTTON_NAMES[event.button]
+    elif event:
+        return event.name
     return None
+
+
+def on_mouse_button(button, callback):
+    def handler(event):
+        if isinstance(event, mouse.ButtonEvent):
+            if event.event_type and event.button == button:
+                callback(event)
+    mouse._listener.add_handler(handler)
+    return handler
