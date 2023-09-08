@@ -12,10 +12,10 @@ class Setting_Handler():
         self.colours = ['#DC0014', '#FF8C0A', '#00C1C1', '#2832E6']
         self.key_display_method = 'key numbers'
         
-        # 3: #00F0B4
         self.font_size = 18
         self.relative_pad_left = 0.5
         self.line_spacing = 1.5
+        self.colour = 1
         
     def save(self, settings_path='settings.p'):
         logging.info('saving settings to file')

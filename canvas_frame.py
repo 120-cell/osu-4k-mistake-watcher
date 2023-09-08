@@ -66,6 +66,7 @@ class Canvas_Frame(ttk.Frame):
             
             
     def refresh(self):
+        logging.debug('refreshing canvas')
         self.canvas.delete('all')
         self.canvas_lines = []
         for mistake in self.mistakes:

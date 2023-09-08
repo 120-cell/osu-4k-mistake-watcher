@@ -60,28 +60,30 @@ class App(tk.Tk):
                                                  background='white'))
             self.keybind_labels[keyindex].grid(column=2, row=keyindex, padx=10, pady=5)
             
-        ttk.Label(self.tab1, text='key display method', font="tkDefaulFont 14 bold").pack()
+        ttk.Label(self.tab1, text='display options', font="tkDefaulFont 14 bold").pack()
         
+        self.key_display_var = tk.StringVar(self, self.settings.key_display_method)
         self.key_display_frame = ttk.Frame(self.tab1)
         self.key_display_frame.pack()
-        self.key_display_method = tk.StringVar(self, 'key numbers')
         self.key_display_r0 = tk.Radiobutton(self.key_display_frame, text='key numbers', 
-                                              value='key numbers', variable=self.key_display_method)
+                                              value='key numbers', variable=self.key_display_var)
         self.key_display_r1 = tk.Radiobutton(self.key_display_frame, text='key binds', 
-                                              value='binds', variable=self.key_display_method)
+                                              value='binds', variable=self.key_display_var)
         self.key_display_r0.pack(anchor='w')
         self.key_display_r1.pack(anchor='w')
         self.key_display_frame.bind_all('<Button-1>', self.update_settings)
         
-        ttk.Label(self.tab1, text='font size', font="tkDefaulFont 14 bold").pack()
         
         self.font_size_frame = ttk.Frame(self.tab1)
         self.font_size_frame.pack()
-        self.font_size_button = ttk.Button(self.font_size_frame, text='set', command=self.font_size_dialog)
+        self.font_size_button = ttk.Button(self.font_size_frame, text='set font size', command=self.font_size_dialog)
         self.font_size_button.grid(row=0, column=0, padx=10, pady=5)
         self.font_size_label = ttk.Label(self.font_size_frame, text=str(self.settings.font_size), background='white')
         self.font_size_label.grid(row=0, column=1, padx=10, pady=5)
         
+        self.colour_var = tk.IntVar(self, self.settings.colour)
+        self.colour_check = tk.Checkbutton(self.tab1, text='colour keys', command=self.colour_change, variable=self.colour_var)
+        self.colour_check.pack()
         
         self.canvas_frame = Canvas_Frame(self.settings, self.tab2, width=400, height=600)
         self.canvas_frame.grid(row=2, column=0, sticky='nw')
@@ -92,13 +94,19 @@ class App(tk.Tk):
         self.refresh_hooks()
         self.update_settings(None)
         self.protocol('WM_DELETE_WINDOW', self.on_close)
+        
+    def on_check(self):
+        logging.debug(f'switched colour to {self.settings.colour}')
+        
+        
+    def colour_change(self):
+        self.update_settings(None)
+        self.canvas_frame.refresh()
     
     
     def update_settings(self, event):
-        self.settings.key_display_method = self.key_display_method.get()
-    
-    
-    
+        self.settings.key_display_method = self.key_display_var.get()
+        self.settings.colour = self.colour_var.get()
     
     
     def bind_key(self, keyindex):
@@ -137,12 +145,15 @@ class App(tk.Tk):
         if self.pressed[keyindex]:
             return
         
-        if self.pressed[(keyindex - 2) % self.settings.KEYS]:
-            mistake = Keylock(self.settings, (keyindex - 2) % self.settings.KEYS, keyindex)
+        two_back = (keyindex - 2) % self.settings.KEYS
+        if self.pressed[two_back]:
+            mistake = Keylock(self.settings, [two_back, keyindex])
             self.canvas_frame.insert_mistake(mistake)
+            
         if keyindex == self.last_keyindex:
             mistake = Repeat(self.settings, keyindex)
             self.canvas_frame.insert_mistake(mistake)
+            
         elif self.last_keyindex is not None:
             skipped = list(modular_range(self.settings.KEYS, self.last_keyindex + 1, keyindex))
             if skipped:
