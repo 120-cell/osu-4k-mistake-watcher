@@ -51,7 +51,7 @@ class App(tk.Tk):
         self.ENTRY_LIMIT = 10
         bind_command_factory = lambda i: (lambda: self.bind_key(i))
         colour_command_factory = lambda i: (lambda: self.colour_dialog(i))
-        char_limit_factory = lambda i: (lambda *args: self.on_entry_write(i))
+        entry_comman_factory = lambda i: (lambda *args: self.on_entry_write(i))
         for keyindex in range(self.settings.KEYS):
             self.colour_buttons.append(tk.Button(self.keybind_frame,
                                                  background=self.settings.colours[keyindex],
@@ -68,7 +68,7 @@ class App(tk.Tk):
             self.alias_entries.append(ttk.Entry(self.keybind_frame, 
                                                 width=round(self.ENTRY_LIMIT * 1.5),
                                                 textvariable=self.alias_vars[keyindex]))
-            self.alias_vars[keyindex].trace('w', char_limit_factory(keyindex))
+            self.alias_vars[keyindex].trace('w', entry_comman_factory(keyindex))
             self.alias_entries[keyindex].grid(column=3, row=keyindex, padx=10, pady=5)
             
         ttk.Label(self.tab1, text='display options', font="tkDefaulFont 14 bold").pack()
@@ -139,7 +139,8 @@ class App(tk.Tk):
     def on_entry_write(self, keyindex):
         self.alias_entries[keyindex].delete(self.ENTRY_LIMIT, 'end')
         self.settings.aliases[keyindex] = self.alias_vars[keyindex].get()
-    
+        self.canvas_frame.configure(width=self.canvas_frame.get_max_linewidth() + self.settings.font_size)
+            
     
     def bind_key(self, keyindex):
         key = workaround_read_key()
