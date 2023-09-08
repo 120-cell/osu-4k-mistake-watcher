@@ -36,7 +36,7 @@ class App(tk.Tk):
 
         self.tab_control.pack(expand=1, fill='both')
         
-        ttk.Label(self.tab1, text='key display method', font="tkDefaulFont 14 bold").pack()
+        ttk.Label(self.tab1, text='key binds', font="tkDefaulFont 14 bold").pack()
         
         self.keybind_frame = ttk.Frame(self.tab1)
         self.keybind_frame.pack()
@@ -66,7 +66,7 @@ class App(tk.Tk):
         self.key_display_method = tk.StringVar(self, 'key numbers')
         self.key_display_r0 = tk.Radiobutton(self.key_display_frame, text='key numbers', 
                                               value='key numbers', variable=self.key_display_method)
-        self.key_display_r1 = tk.Radiobutton(self.key_display_frame, text='binds', 
+        self.key_display_r1 = tk.Radiobutton(self.key_display_frame, text='key binds', 
                                               value='binds', variable=self.key_display_method)
         self.key_display_r0.pack(anchor='w')
         self.key_display_r1.pack(anchor='w')
