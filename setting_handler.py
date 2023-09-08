@@ -17,10 +17,6 @@ class Setting_Handler():
         self.relative_pad_left = 0.5
         self.line_spacing = 1.5
         
-    def set_colour(self, keyindex, colour):
-        self.colours[keyindex] = colour
-        app.colour_buttons[keyindex].config(bg=colour)
-        
     def save(self, settings_path='settings.p'):
         logging.info('saving settings to file')
         with open(settings_path, 'wb') as file:

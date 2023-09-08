@@ -14,3 +14,6 @@ class Canvas_Textline():
         self.texts.append(new_text)
         bbox = self.canvas.bbox(new_text)
         self.width += bbox[2] - bbox[0]
+        
+    def get_height(self):
+        return max([self.canvas.bbox(text)[3] - self.canvas.bbox(text)[1] for text in self.texts])

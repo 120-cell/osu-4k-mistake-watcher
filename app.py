@@ -5,8 +5,10 @@ import mouse
 import logging
 from queue import Queue
 from _queue import Empty
+import re
 import tkinter as tk
 import tkinter.ttk as ttk
+from tkinter import simpledialog
 
 from mistake import Keylock, Repeat, Skip
 
@@ -34,7 +36,7 @@ class App(tk.Tk):
 
         self.tab_control.pack(expand=1, fill='both')
         
-        ttk.Label(self.tab1, text='key binds', font="tkDefaulFont 14 bold").pack()
+        ttk.Label(self.tab1, text='key display method', font="tkDefaulFont 14 bold").pack()
         
         self.keybind_frame = ttk.Frame(self.tab1)
         self.keybind_frame.pack()
@@ -42,7 +44,7 @@ class App(tk.Tk):
         self.set_buttons = []
         self.colour_buttons = []
         bind_command_factory = lambda i: (lambda: self.bind_key(i))
-        colour_command_factory = lambda i: (lambda: colour_dialog(i))
+        colour_command_factory = lambda i: (lambda: self.colour_dialog(i))
         for keyindex in range(self.settings.KEYS):
             self.colour_buttons.append(tk.Button(self.keybind_frame,
                                                  background=self.settings.colours[keyindex],
@@ -68,8 +70,16 @@ class App(tk.Tk):
                                               value='binds', variable=self.key_display_method)
         self.key_display_r0.pack(anchor='w')
         self.key_display_r1.pack(anchor='w')
-        self.key_display_frame.bind_all('<Button-1>', self.update_key_display_method)
-        self.update_key_display_method
+        self.key_display_frame.bind_all('<Button-1>', self.update_settings)
+        
+        ttk.Label(self.tab1, text='font size', font="tkDefaulFont 14 bold").pack()
+        
+        self.font_size_frame = ttk.Frame(self.tab1)
+        self.font_size_frame.pack()
+        self.font_size_button = ttk.Button(self.font_size_frame, text='set', command=self.font_size_dialog)
+        self.font_size_button.grid(row=0, column=0, padx=10, pady=5)
+        self.font_size_label = ttk.Label(self.font_size_frame, text=str(self.settings.font_size), background='white')
+        self.font_size_label.grid(row=0, column=1, padx=10, pady=5)
         
         # frame for canvas
         self.canvas_frame = tk.Frame(self.tab2, width=400, height=600)
@@ -84,12 +94,14 @@ class App(tk.Tk):
         self.canvas.bind('<Leave>', self._unbind_to_mousewheel)
 
         self.canvas_lines = []
+        self.canvas_y = 0
         
         self.refresh_hooks()
+        self.update_settings(None)
         self.protocol('WM_DELETE_WINDOW', self.on_close)
     
     
-    def update_key_display_method(self, event):
+    def update_settings(self, event):
         self.settings.key_display_method = self.key_display_method.get()
     
     
@@ -141,8 +153,6 @@ class App(tk.Tk):
                 
                 
     def handle_event(self, event):
-        logging.debug(f'key display method: {self.settings.key_display_method}')
-        
         
         if isinstance(event, mouse.ButtonEvent):
             bind = MOUSE_BUTTON_NAMES[event.button]
@@ -184,6 +194,29 @@ class App(tk.Tk):
         self.canvas.config(scrollregion=self.canvas.bbox('all'))
         self.canvas.yview_moveto(1)
         
+        
+    def colour_dialog(self, keyindex):
+        colour = tk.simpledialog.askstring('input', 'colour hexcode')
+        if is_hexcode(colour):
+            colour = colour.upper()
+            if not colour.startswith('#'):
+                colour = f'#{colour}'
+            self.colour_buttons[keyindex].config(bg=colour)
+            self.settings.colours[keyindex] = colour
+            
+            
+    def font_size_dialog(self):
+        font_size = tk.simpledialog.askinteger('input', 'font size')
+        if 0 < font_size:
+            self.settings.font_size = font_size
+            self.font_size_label.config(text=str(font_size))
+            self.clear_canvas()
+            
+            
+    def clear_canvas(self):
+        self.canvas.delete('all')
+        self.canvas_lines = []
+        
     
     def on_close(self):
         self.settings.save()
@@ -207,15 +240,6 @@ def is_hexcode(code):
         return True
     logging.debug('hexcode string is invalid')
     return False
-    
-
-def colour_dialog(keyindex):
-    colour = simpledialog.askstring('input', 'colour hexcode')
-    if is_hexcode(colour):
-        if colour.startswith('#'):
-            settings.set_colour(keyindex, colour.upper())
-        else:
-            settings.set_colour(keyindex, f'#{colour.upper()}')
         
         
 def workaround_read_event(suppress=False):

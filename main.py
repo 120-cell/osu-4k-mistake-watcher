@@ -1,10 +1,7 @@
-from datetime import datetime
+
 import logging
 import os
 import pickle
-
-import re
-from tkinter import simpledialog
 
 from app import App
 from mistake import Keylock, Repeat, Skip
