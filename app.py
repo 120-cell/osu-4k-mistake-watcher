@@ -111,6 +111,7 @@ class App(tk.Tk):
         self.update_display_settings()
         self.protocol('WM_DELETE_WINDOW', self.on_close)
         
+        
     def on_check(self):
         logging.debug(f'switched colour to {self.settings.colour}')
         
@@ -132,7 +133,6 @@ class App(tk.Tk):
                 entry.grid()
         else:
             for entry in self.alias_entries:
-                logging.debug('removed!')
                 entry.grid_remove()
         
     

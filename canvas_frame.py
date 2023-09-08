@@ -4,9 +4,11 @@ import logging
 import tkinter as tk
 import tkinter.ttk as ttk
 
+from mistake import Mistake
+
 
 class Canvas_Frame(ttk.Frame):
-    def __init__(self, settings, master, width=400, height=600):
+    def __init__(self, settings, master, width, height):
         super().__init__(master, width=width, height=height)
         self.settings = settings
         self.canvas = tk.Canvas(self, bg='white')
@@ -68,7 +70,28 @@ class Canvas_Frame(ttk.Frame):
             
     def refresh(self):
         logging.debug('refreshing canvas')
+        self.configure(width=self.get_max_linewidth() + self.settings.font_size)
         self.canvas.delete('all')
         self.canvas_lines = []
         for mistake in self.mistakes:
             self.draw_mistake(mistake)
+            
+    
+    def get_max_linewidth(self):
+        canvas = tk.Canvas(self)
+        mistake = Mistake(self.settings, list(range(self.settings.KEYS)))
+        displays = mistake.get_displays()
+        widths = []
+        for display in displays:
+            text = canvas.create_text(0, 0, text=display, font=f'tkDefaultFont {self.settings.font_size}')
+            widths.append(canvas.bbox(text)[2] - canvas.bbox(text)[0])
+        max_display_width = max(widths)
+        
+        extra_text_1 = canvas.create_text(0, 0, text='[00:00:00] keylocked -', font=f'tkDefaultFont {self.settings.font_size}')
+        extra_width_1 = canvas.bbox(extra_text_1)[2] - canvas.bbox(extra_text_1)[0]
+        text = '[00:00:00] skipped '+', ' * (self.settings.KEYS - 3)
+        extra_text_2 = canvas.create_text(0, 0, text=text, font=f'tkDefaultFont {self.settings.font_size}')
+        extra_width_2 = canvas.bbox(extra_text_2)[2] - canvas.bbox(extra_text_2)[0]
+        
+        return max(2 * max_display_width + extra_width_1,
+                   (self.settings.KEYS - 2) * max_display_width + extra_width_2)
