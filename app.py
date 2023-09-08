@@ -11,6 +11,7 @@ import tkinter.ttk as ttk
 from tkinter import simpledialog
 
 from mistake import Keylock, Repeat, Skip
+from canvas_frame import Canvas_Frame
 
 MOUSE_BUTTON_NAMES = {'left': 'Button-1', 
                       'right':'Button-2', 
@@ -81,20 +82,12 @@ class App(tk.Tk):
         self.font_size_label = ttk.Label(self.font_size_frame, text=str(self.settings.font_size), background='white')
         self.font_size_label.grid(row=0, column=1, padx=10, pady=5)
         
-        # frame for canvas
-        self.canvas_frame = tk.Frame(self.tab2, width=400, height=600)
+        
+        self.canvas_frame = Canvas_Frame(self.settings, self.tab2, width=400, height=600)
         self.canvas_frame.grid(row=2, column=0, sticky='nw')
         self.canvas_frame.grid_rowconfigure(0, weight=1)
         self.canvas_frame.grid_columnconfigure(0, weight=1)
         self.canvas_frame.grid_propagate(False)
-        
-        self.canvas = tk.Canvas(self.canvas_frame, bg='white')
-        self.canvas.grid(row=0, column=0, sticky='news')
-        self.canvas.bind('<Enter>', self._bind_to_mousewheel)
-        self.canvas.bind('<Leave>', self._unbind_to_mousewheel)
-
-        self.canvas_lines = []
-        self.canvas_y = 0
         
         self.refresh_hooks()
         self.update_settings(None)
@@ -105,31 +98,7 @@ class App(tk.Tk):
         self.settings.key_display_method = self.key_display_method.get()
     
     
-    def _bind_to_mousewheel(self, event):
-        # windows
-        self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
-        # linux
-        self.canvas.bind_all('<Button-4>', self._on_mousewheel)
-        self.canvas.bind_all('<Button-5>', self._on_mousewheel)
     
-    
-    def _unbind_to_mousewheel(self, event):
-        # windows
-        self.canvas.unbind_all('<MouseWheel>')
-        # linux
-        self.canvas.unbind_all('<Button-4>')
-        self.canvas.unbind_all('<Button-5>')
-    
-    
-    def _on_mousewheel(self, event):
-        # windows
-        if not event.delta == 0:
-            self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
-        # linux
-        if event.num == 4:
-            self.canvas.yview_scroll(-1, 'units')
-        elif event.num == 5:
-            self.canvas.yview_scroll(1, 'units')
     
     
     def bind_key(self, keyindex):
@@ -170,31 +139,21 @@ class App(tk.Tk):
         
         if self.pressed[(keyindex - 2) % self.settings.KEYS]:
             mistake = Keylock(self.settings, (keyindex - 2) % self.settings.KEYS, keyindex)
-            self.insert_mistake(mistake)
+            self.canvas_frame.insert_mistake(mistake)
         if keyindex == self.last_keyindex:
             mistake = Repeat(self.settings, keyindex)
-            self.insert_mistake(mistake)
+            self.canvas_frame.insert_mistake(mistake)
         elif self.last_keyindex is not None:
             skipped = list(modular_range(self.settings.KEYS, self.last_keyindex + 1, keyindex))
             if skipped:
                 mistake = Skip(self.settings, skipped)
-                self.insert_mistake(mistake)
+                self.canvas_frame.insert_mistake(mistake)
                 
         self.pressed[keyindex] = True
         self.last_keyindex = keyindex
         return
     
     
-    def insert_mistake(self, mistake):
-        current_y = len(self.canvas_lines) * self.settings.line_spacing * self.settings.font_size
-        new_line = mistake.create_canvas_line(self.canvas, 
-                                              self.settings.relative_pad_left * self.settings.font_size, 
-                                              current_y)
-        self.canvas_lines.append(new_line)
-        self.canvas.config(scrollregion=self.canvas.bbox('all'))
-        self.canvas.yview_moveto(1)
-        
-        
     def colour_dialog(self, keyindex):
         colour = tk.simpledialog.askstring('input', 'colour hexcode')
         if is_hexcode(colour):
@@ -210,12 +169,7 @@ class App(tk.Tk):
         if 0 < font_size:
             self.settings.font_size = font_size
             self.font_size_label.config(text=str(font_size))
-            self.clear_canvas()
-            
-            
-    def clear_canvas(self):
-        self.canvas.delete('all')
-        self.canvas_lines = []
+            self.canvas_frame.refresh()
         
     
     def on_close(self):
