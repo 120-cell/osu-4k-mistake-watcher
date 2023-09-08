@@ -15,7 +15,7 @@ class Keylock(Mistake):
         super().__init__(settings)
         self.indices = (keyindex_1, keyindex_2)
         if settings.key_display_method == 'key numbers':
-            self.displays = [str(keyindex_1 + 1), str(keyindex_2 + 2)]
+            self.displays = [str(keyindex_1 + 1), str(keyindex_2 + 1)]
         else:
             self.displays = [settings.binds[keyindex_1], settings.binds[keyindex_2]]
     
