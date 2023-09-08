@@ -9,11 +9,12 @@ class Mistake():
         self.settings = settings
         self.keyindices = keyindices
         self.time = datetime.now()
+            
+    def get_displays(self):
         if self.settings.key_display_method == 'key numbers':
-            self.displays = [str(i + 1) for i in keyindices]
+            return [str(i + 1) for i in self.keyindices]
         else:
-            self.displays = [settings.binds[i] for i in keyindices]
-        
+            return [self.settings.binds[i] for i in self.keyindices]
             
     def get_colours(self):
         if self.settings.colour:
@@ -28,13 +29,14 @@ class Keylock(Mistake):
         super().__init__(settings, keyindices)
     
     def create_canvas_line(self, canvas, x, y):
+        displays = self.get_displays()
         colours = self.get_colours()
         line = Canvas_Textline(self.settings, canvas, x, y)
         line.add_text(self.time.strftime('[%H:%M:%S] '), fill='gray')
         line.add_text('keylocked ')
-        line.add_text(self.displays[0], fill=colours[0])
+        line.add_text(displays[0], fill=colours[0])
         line.add_text('-')
-        line.add_text(self.displays[1], fill=colours[1])
+        line.add_text(displays[1], fill=colours[1])
         return line
     
     
@@ -47,11 +49,12 @@ class Repeat(Mistake):
             super().__init__(settings, [keyindices])
     
     def create_canvas_line(self, canvas, x, y):
+        displays = self.get_displays()
         colours = self.get_colours()
         line = Canvas_Textline(self.settings, canvas, x, y)
         line.add_text(self.time.strftime('[%H:%M:%S] '), fill='gray')
         line.add_text('repeated ')
-        line.add_text(self.displays[0], fill=colours[0])
+        line.add_text(displays[0], fill=colours[0])
         return line
     
     
@@ -64,12 +67,13 @@ class Skip(Mistake):
             super().__init__(settings, [keyindices])
     
     def create_canvas_line(self, canvas, x, y):
+        displays = self.get_displays()
         colours = self.get_colours()
         line = Canvas_Textline(self.settings, canvas, x, y)
         line.add_text(self.time.strftime('[%H:%M:%S] '), fill='gray')
         line.add_text('skipped ')
-        for display, colour in zip(self.displays[:-1], colours[:-1]):
+        for display, colour in zip(displays[:-1], colours[:-1]):
             line.add_text(display, fill=colour)
             line.add_text(', ')
-        line.add_text(self.displays[-1], fill=colours[-1])
+        line.add_text(displays[-1], fill=colours[-1])
         return line

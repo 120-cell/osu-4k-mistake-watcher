@@ -25,6 +25,7 @@ class App(tk.Tk):
     def __init__(self, settings):
         super().__init__()
         self.settings = settings
+        self.title('4k mistake watcher')
         self.last_keyindex = None
         self.pressed = [False] * self.settings.KEYS
         
@@ -71,7 +72,7 @@ class App(tk.Tk):
                                               value='binds', variable=self.key_display_var)
         self.key_display_r0.pack(anchor='w')
         self.key_display_r1.pack(anchor='w')
-        self.key_display_frame.bind_all('<Button-1>', self.update_settings)
+        self.key_display_frame.bind_all('<Button-1>', self.update_display_settings)
         
         
         self.font_size_frame = ttk.Frame(self.tab1)
@@ -82,7 +83,7 @@ class App(tk.Tk):
         self.font_size_label.grid(row=0, column=1, padx=10, pady=5)
         
         self.colour_var = tk.IntVar(self, self.settings.colour)
-        self.colour_check = tk.Checkbutton(self.tab1, text='colour keys', command=self.colour_change, variable=self.colour_var)
+        self.colour_check = tk.Checkbutton(self.tab1, text='colour keys', command=self.update_display_settings, variable=self.colour_var)
         self.colour_check.pack()
         
         self.canvas_frame = Canvas_Frame(self.settings, self.tab2, width=400, height=600)
@@ -92,21 +93,17 @@ class App(tk.Tk):
         self.canvas_frame.grid_propagate(False)
         
         self.refresh_hooks()
-        self.update_settings(None)
+        self.update_display_settings(None)
         self.protocol('WM_DELETE_WINDOW', self.on_close)
         
     def on_check(self):
         logging.debug(f'switched colour to {self.settings.colour}')
         
         
-    def colour_change(self):
-        self.update_settings(None)
-        self.canvas_frame.refresh()
-    
-    
-    def update_settings(self, event):
+    def update_display_settings(self, event):
         self.settings.key_display_method = self.key_display_var.get()
         self.settings.colour = self.colour_var.get()
+        self.canvas_frame.refresh()
     
     
     def bind_key(self, keyindex):
