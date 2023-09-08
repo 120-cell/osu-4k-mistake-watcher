@@ -42,37 +42,52 @@ class App(tk.Tk):
         
         self.keybind_frame = ttk.Frame(self.tab1)
         self.keybind_frame.pack()
-        self.keybind_labels = []
-        self.set_buttons = []
+        
         self.colour_buttons = []
+        self.keybind_buttons = []
+        self.keybind_labels = []
+        self.alias_entries = []
+        self.alias_vars = [tk.StringVar(self, alias) for alias in self.settings.aliases]
+        self.ENTRY_LIMIT = 10
         bind_command_factory = lambda i: (lambda: self.bind_key(i))
         colour_command_factory = lambda i: (lambda: self.colour_dialog(i))
+        char_limit_factory = lambda i: (lambda *args: self.on_entry_write(i))
         for keyindex in range(self.settings.KEYS):
             self.colour_buttons.append(tk.Button(self.keybind_frame,
                                                  background=self.settings.colours[keyindex],
                                                  command=colour_command_factory(keyindex)))
             self.colour_buttons[keyindex].grid(column=0, row=keyindex, padx=10, pady=5)
-            self.set_buttons.append(ttk.Button(self.keybind_frame,
-                                               text=f'set key {keyindex+1}',
-                                               command=bind_command_factory(keyindex)))
-            self.set_buttons[keyindex].grid(column=1, row=keyindex, padx=10, pady=5)
+            self.keybind_buttons.append(ttk.Button(self.keybind_frame,
+                                                   text=f'set key {keyindex+1}',
+                                                   command=bind_command_factory(keyindex)))
+            self.keybind_buttons[keyindex].grid(column=1, row=keyindex, padx=10, pady=5)
             self.keybind_labels.append(ttk.Label(self.keybind_frame,
                                                  text=self.settings.binds[keyindex],
                                                  background='white'))
             self.keybind_labels[keyindex].grid(column=2, row=keyindex, padx=10, pady=5)
+            self.alias_entries.append(ttk.Entry(self.keybind_frame, 
+                                                width=round(self.ENTRY_LIMIT * 1.5),
+                                                textvariable=self.alias_vars[keyindex]))
+            self.alias_vars[keyindex].trace('w', char_limit_factory(keyindex))
+            self.alias_entries[keyindex].grid(column=3, row=keyindex, padx=10, pady=5)
             
         ttk.Label(self.tab1, text='display options', font="tkDefaulFont 14 bold").pack()
         
         self.key_display_var = tk.StringVar(self, self.settings.key_display_method)
         self.key_display_frame = ttk.Frame(self.tab1)
         self.key_display_frame.pack()
-        self.key_display_r0 = tk.Radiobutton(self.key_display_frame, text='key numbers', 
-                                              value='key numbers', variable=self.key_display_var)
-        self.key_display_r1 = tk.Radiobutton(self.key_display_frame, text='key binds', 
-                                              value='binds', variable=self.key_display_var)
-        self.key_display_r0.pack(anchor='w')
-        self.key_display_r1.pack(anchor='w')
-        self.key_display_frame.bind_all('<Button-1>', self.update_display_settings)
+        self.key_display_radios = []
+        self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='key numbers', 
+                                                      command=self.update_display_settings,
+                                                      value='key numbers', variable=self.key_display_var))
+        self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='key binds', 
+                                                      command=self.update_display_settings,
+                                                      value='key binds', variable=self.key_display_var))
+        self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='aliases', 
+                                                      command=self.update_alias_entries,
+                                                      value='aliases', variable=self.key_display_var))
+        for radio_button in self.key_display_radios:
+            radio_button.pack(anchor='w')
         
         
         self.font_size_frame = ttk.Frame(self.tab1)
@@ -93,25 +108,57 @@ class App(tk.Tk):
         self.canvas_frame.grid_propagate(False)
         
         self.refresh_hooks()
-        self.update_display_settings(None)
+        self.update_display_settings()
         self.protocol('WM_DELETE_WINDOW', self.on_close)
         
     def on_check(self):
         logging.debug(f'switched colour to {self.settings.colour}')
         
         
-    def update_display_settings(self, event):
+    def update_display_settings(self):
         self.settings.key_display_method = self.key_display_var.get()
         self.settings.colour = self.colour_var.get()
         self.canvas_frame.refresh()
+        self.update_alias_entries()
+        logging.info(f'current colour mode: {self.settings.colour}')
+        if self.settings.colour:
+            for colour_button in self.colour_buttons:
+                colour_button.grid()
+        else:
+            for colour_button in self.colour_buttons:
+                colour_button.grid_remove()
+                
+            
+    def update_alias_entries(self):
+        logging.info(f'current display method: {self.settings.key_display_method}')
+        self.settings.key_display_method = self.key_display_var.get()
+        if self.settings.key_display_method == 'aliases':
+            for entry in self.alias_entries:
+                entry.grid()
+        else:
+            for entry in self.alias_entries:
+                logging.debug('removed!')
+                entry.grid_remove()
+        
+        
+    
+    def on_entry_write(self, keyindex):
+        self.alias_entries[keyindex].delete(self.ENTRY_LIMIT, 'end')
+        self.settings.aliases[keyindex] = self.alias_vars[keyindex].get()
     
     
     def bind_key(self, keyindex):
         key = workaround_read_key()
         if key is None or key in self.settings.binds:
             return
-        self.keybind_labels[keyindex].config(text=key)
+        # if key in self.settings.binds:
+        #     old_position = self.settings.binds.index(key)
+        #     self.settings.binds[old_position] = None
+        #     self.keybind_labels[old_position].config(text=' ')
+        #     logging.info(f'key {old_position} unbound')
+            
         self.settings.binds[keyindex] = key
+        self.keybind_labels[keyindex].config(text=key)
         self.refresh_hooks()
         logging.debug(f'current binds: {self.settings.binds}')
         

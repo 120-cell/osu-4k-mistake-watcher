@@ -8,13 +8,18 @@ class Mistake():
     def __init__(self, settings, keyindices):
         self.settings = settings
         self.keyindices = keyindices
+        self.binds = self.settings.binds
+        self.aliases = self.settings.aliases
         self.time = datetime.now()
             
     def get_displays(self):
-        if self.settings.key_display_method == 'key numbers':
-            return [str(i + 1) for i in self.keyindices]
-        else:
-            return [self.settings.binds[i] for i in self.keyindices]
+        match self.settings.key_display_method:
+            case 'key numbers':
+                return [str(i + 1) for i in self.keyindices]
+            case 'key binds':
+                return [self.binds[i] for i in self.keyindices]
+            case 'aliases':
+                return [self.aliases[i] for i in self.keyindices]
             
     def get_colours(self):
         if self.settings.colour:
