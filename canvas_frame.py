@@ -1,4 +1,5 @@
 
+from collections import deque
 import logging
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -13,7 +14,7 @@ class Canvas_Frame(ttk.Frame):
         self.canvas.bind('<Enter>', self.bind_to_mousewheel)
         self.canvas.bind('<Leave>', self.unbind_to_mousewheel)
 
-        self.mistakes = []
+        self.mistakes = deque(maxlen=1000)
         self.canvas_lines = []
         self.canvas_y = 0
         
