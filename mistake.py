@@ -1,4 +1,5 @@
 
+import copy
 from datetime import datetime
 import logging
 
@@ -8,8 +9,8 @@ class Mistake():
     def __init__(self, settings, keyindices):
         self.settings = settings
         self.keyindices = keyindices
-        self.binds = self.settings.binds
-        self.aliases = self.settings.aliases
+        self.binds = copy.deepcopy(self.settings.binds)
+        self.aliases = copy.deepcopy(self.settings.aliases)
         self.time = datetime.now()
             
     def get_displays(self):

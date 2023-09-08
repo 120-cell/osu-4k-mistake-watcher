@@ -84,7 +84,7 @@ class App(tk.Tk):
                                                       command=self.update_display_settings,
                                                       value='key binds', variable=self.key_display_var))
         self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='aliases', 
-                                                      command=self.update_alias_entries,
+                                                      command=self.update_display_settings,
                                                       value='aliases', variable=self.key_display_var))
         for radio_button in self.key_display_radios:
             radio_button.pack(anchor='w')
@@ -119,7 +119,7 @@ class App(tk.Tk):
         self.settings.key_display_method = self.key_display_var.get()
         self.settings.colour = self.colour_var.get()
         self.canvas_frame.refresh()
-        self.update_alias_entries()
+        logging.info(f'current display method: {self.settings.key_display_method}')
         logging.info(f'current colour mode: {self.settings.colour}')
         if self.settings.colour:
             for colour_button in self.colour_buttons:
@@ -127,11 +127,6 @@ class App(tk.Tk):
         else:
             for colour_button in self.colour_buttons:
                 colour_button.grid_remove()
-                
-            
-    def update_alias_entries(self):
-        logging.info(f'current display method: {self.settings.key_display_method}')
-        self.settings.key_display_method = self.key_display_var.get()
         if self.settings.key_display_method == 'aliases':
             for entry in self.alias_entries:
                 entry.grid()
@@ -139,7 +134,6 @@ class App(tk.Tk):
             for entry in self.alias_entries:
                 logging.debug('removed!')
                 entry.grid_remove()
-        
         
     
     def on_entry_write(self, keyindex):
