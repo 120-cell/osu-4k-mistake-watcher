@@ -23,7 +23,7 @@ class App(tk.Tk):
         super().__init__()
         self.settings = settings
         self.last_keyindex = None
-        self.pressed = [False] * settings.KEYS
+        self.pressed = [False] * self.settings.KEYS
         
         self.tab_control = ttk.Notebook(self)
         self.tab1 = ttk.Frame(self.tab_control)
@@ -33,17 +33,19 @@ class App(tk.Tk):
         self.tab_control.select(self.tab2)
 
         self.tab_control.pack(expand=1, fill='both')
+        
+        ttk.Label(self.tab1, text='key binds', font="tkDefaulFont 14 bold").pack()
+        
         self.keybind_frame = ttk.Frame(self.tab1)
         self.keybind_frame.pack()
-        
         self.keybind_labels = []
         self.set_buttons = []
         self.colour_buttons = []
         bind_command_factory = lambda i: (lambda: self.bind_key(i))
         colour_command_factory = lambda i: (lambda: colour_dialog(i))
-        for keyindex in range(settings.KEYS):
+        for keyindex in range(self.settings.KEYS):
             self.colour_buttons.append(tk.Button(self.keybind_frame,
-                                                 background=settings.colours[keyindex],
+                                                 background=self.settings.colours[keyindex],
                                                  command=colour_command_factory(keyindex)))
             self.colour_buttons[keyindex].grid(column=0, row=keyindex, padx=10, pady=5)
             self.set_buttons.append(ttk.Button(self.keybind_frame,
@@ -51,9 +53,23 @@ class App(tk.Tk):
                                                command=bind_command_factory(keyindex)))
             self.set_buttons[keyindex].grid(column=1, row=keyindex, padx=10, pady=5)
             self.keybind_labels.append(ttk.Label(self.keybind_frame,
-                                                 text=settings.binds[keyindex],
+                                                 text=self.settings.binds[keyindex],
                                                  background='white'))
             self.keybind_labels[keyindex].grid(column=2, row=keyindex, padx=10, pady=5)
+            
+        ttk.Label(self.tab1, text='key display method', font="tkDefaulFont 14 bold").pack()
+        
+        self.key_display_frame = ttk.Frame(self.tab1)
+        self.key_display_frame.pack()
+        self.key_display_method = tk.StringVar(self, 'key numbers')
+        self.key_display_r0 = tk.Radiobutton(self.key_display_frame, text='key numbers', 
+                                              value='key numbers', variable=self.key_display_method)
+        self.key_display_r1 = tk.Radiobutton(self.key_display_frame, text='binds', 
+                                              value='binds', variable=self.key_display_method)
+        self.key_display_r0.pack(anchor='w')
+        self.key_display_r1.pack(anchor='w')
+        self.key_display_frame.bind_all('<Button-1>', self.update_key_display_method)
+        self.update_key_display_method
         
         # frame for canvas
         self.canvas_frame = tk.Frame(self.tab2, width=400, height=600)
@@ -71,6 +87,10 @@ class App(tk.Tk):
         
         self.refresh_hooks()
         self.protocol('WM_DELETE_WINDOW', self.on_close)
+    
+    
+    def update_key_display_method(self, event):
+        self.settings.key_display_method = self.key_display_method.get()
     
     
     def _bind_to_mousewheel(self, event):
@@ -121,6 +141,9 @@ class App(tk.Tk):
                 
                 
     def handle_event(self, event):
+        logging.debug(f'key display method: {self.settings.key_display_method}')
+        
+        
         if isinstance(event, mouse.ButtonEvent):
             bind = MOUSE_BUTTON_NAMES[event.button]
             keyindex = self.settings.binds.index(bind)

@@ -10,6 +10,7 @@ class Setting_Handler():
         self.KEYS = 4
         self.binds = [None] * self.KEYS
         self.colours = ['#DC0014', '#FF8C0A', '#00C1C1', '#2832E6']
+        self.key_display_method = 'key numbers'
         
         # 3: #00F0B4
         self.font_size = 18
