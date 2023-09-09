@@ -4,7 +4,6 @@ import os
 import pickle
 
 from app import App
-from mistake import Keylock, Repeat, Skip
 from setting_handler import Setting_Handler, SETTINGS_PATH
 
 

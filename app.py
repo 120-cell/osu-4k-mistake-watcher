@@ -112,10 +112,6 @@ class App(tk.Tk):
         self.protocol('WM_DELETE_WINDOW', self.on_close)
         
         
-    def on_check(self):
-        logging.debug(f'switched colour to {self.settings.colour}')
-        
-        
     def update_display_settings(self):
         self.settings.key_display_method = self.key_display_var.get()
         self.settings.colour = self.colour_var.get()
@@ -216,10 +212,12 @@ class App(tk.Tk):
             
     def font_size_dialog(self):
         font_size = tk.simpledialog.askinteger('input', 'font size')
-        if 0 < font_size:
+        if font_size and 0 < font_size:
             self.settings.font_size = font_size
             self.font_size_label.config(text=str(font_size))
             self.canvas_frame.refresh()
+        else:
+            logging.info('font size input is not positive')
         
     
     def on_close(self):
@@ -237,12 +235,12 @@ def modular_range(modulus, start, end):
 
 def is_hexcode(code):
     if not isinstance(code, str):
-        logging.debug('hexcode input is not a string')
+        logging.info('hexcode input is not a string')
         return False
     match = re.fullmatch(r'#?[0-9a-fA-F]{6}', code)
     if match:
         return True
-    logging.debug('hexcode string is invalid')
+    logging.info('hexcode string is invalid')
     return False
         
         
