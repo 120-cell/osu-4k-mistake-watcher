@@ -1,4 +1,5 @@
 
+from datetime import datetime
 from itertools import chain
 import keyboard as kb
 import mouse
@@ -28,6 +29,7 @@ class App(tk.Tk):
         self.title('4k mistake watcher')
         self.last_keyindex = None
         self.pressed = [False] * self.settings.KEYS
+        self.full_release_time = None
         
         self.tab_control = ttk.Notebook(self)
         self.tab1 = ttk.Frame(self.tab_control)
@@ -175,10 +177,18 @@ class App(tk.Tk):
         #releases do not trigger mistakes
         if event.event_type == kb.KEY_UP or event.event_type == mouse.UP:
             self.pressed[keyindex] = False
+            if not any(self.pressed):
+                self.full_release_time = datetime.now()
             return
         #repeated keydown events due to holding are not registered
         if self.pressed[keyindex]:
             return
+        
+        if self.full_release_time:
+            timedelta = datetime.now() - self.full_release_time
+            if timedelta.seconds >= 5:
+                self.full_release_time = None
+                return
         
         two_back = (keyindex - 2) % self.settings.KEYS
         if self.pressed[two_back]:
