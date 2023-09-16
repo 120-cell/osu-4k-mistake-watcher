@@ -186,7 +186,7 @@ class App(tk.Tk):
         
         if self.full_release_time:
             timedelta = datetime.now() - self.full_release_time
-            if timedelta.seconds >= 5:
+            if timedelta.seconds >= 3:
                 self.full_release_time = None
                 return
         
