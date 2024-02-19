@@ -204,6 +204,7 @@ class App(tk.Tk):
             timedelta = datetime.now() - self.full_release_time
             self.full_release_time = None
             if timedelta.seconds >= 3:
+                self.pressed[keyindex] = True
                 return
             
         self.check_for_mistake(keyindex)
