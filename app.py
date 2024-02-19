@@ -213,12 +213,13 @@ class App(tk.Tk):
             return
         # releases do not trigger mistakes
         if event.event_type == kb.KEY_UP or event.event_type == mouse.UP:
+            logging.debug(f'it\'s a release event')
             self.pressed[keyindex] = False
+            logging.debug(f'updated currently pressed: {self.pressed}')
             if not any(self.pressed):
                 self.full_release_time = datetime.now()
-                logging.debug(f'all keys released')
+                logging.debug(f'all keys released, recorded time {self.full_release_time}')
             logging.debug(f'done handling release event')
-            logging.debug(f'currently pressed: {self.pressed}')
             return
         # repeated keydown events due to holding are not registered
         if self.pressed[keyindex]:
@@ -238,9 +239,9 @@ class App(tk.Tk):
         self.check_for_mistake(keyindex)
         self.pressed[keyindex] = True
         self.last_keyindex = keyindex
-        logging.debug(f'done handling event')
         logging.debug(f'updated current pressed: {self.pressed}')
-        logging.debug(f'updated last_keyindex {self.last_keyindex}')
+        logging.debug(f'updated last_keyindex: {self.last_keyindex}')
+        logging.debug(f'done handling event')
         return
     
     def find_keyindex(self, event):
