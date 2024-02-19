@@ -8,7 +8,11 @@ from setting_handler import Setting_Handler, SETTINGS_PATH
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s %(levelname)s %(funcName)s: %(message)s',
+        datefmt='%H:%M:%S'
+    )
     
     abspath = os.path.abspath(__file__)
     dirname = os.path.dirname(abspath)

@@ -203,32 +203,44 @@ class App(tk.Tk):
                 
     def handle_event(self, event):
         keyindex = self.find_keyindex(event)
-            
+        logging.debug(f'registered keyindex {keyindex}')
+        
         # keyindex KEYS clears the canvas
         if keyindex == self.settings.KEYS:
             if event.event_type == kb.KEY_DOWN or event.event_type == mouse.DOWN:
                 self.canvas_frame.clear()
+            logging.debug(f'done handling canvas clear event')
             return
         # releases do not trigger mistakes
         if event.event_type == kb.KEY_UP or event.event_type == mouse.UP:
             self.pressed[keyindex] = False
             if not any(self.pressed):
                 self.full_release_time = datetime.now()
+                logging.debug(f'all keys released')
+            logging.debug(f'done handling release event')
+            logging.debug(f'currently pressed: {self.pressed}')
             return
         # repeated keydown events due to holding are not registered
         if self.pressed[keyindex]:
+            logging.debug(f'ignoring already pressed key {keyindex}')
             return
         # if all keys have been released for a while, no mistakes are triggered
         if self.full_release_time:
+            logging.debug('registered first keydown event after full release')
             timedelta = datetime.now() - self.full_release_time
             self.full_release_time = None
             if timedelta.seconds >= 3:
                 self.pressed[keyindex] = True
+                logging.debug(f'enough time has passed since full release, ignoring keypress {keyindex}')
                 return
+            logging.debug(f'not enough time has passed since full release, continuing')
             
         self.check_for_mistake(keyindex)
         self.pressed[keyindex] = True
         self.last_keyindex = keyindex
+        logging.debug(f'done handling event')
+        logging.debug(f'updated current pressed: {self.pressed}')
+        logging.debug(f'updated last_keyindex {self.last_keyindex}')
         return
     
     def find_keyindex(self, event):
@@ -240,18 +252,23 @@ class App(tk.Tk):
         
         
     def check_for_mistake(self, keyindex):
+        logging.debug(f'checking for mistakes')
+        logging.debug(f'currently pressed: {self.pressed}, current keyindex: {keyindex}')
         two_back = (keyindex - 2) % self.settings.KEYS
         # keylock
         if self.pressed[two_back]:
+            logging.debug(f'{two_back}-{keyindex} keylock')
             mistake = Keylock(self.settings, [two_back, keyindex])
             self.canvas_frame.insert_mistake(mistake)
         # repeat
         if keyindex == self.last_keyindex:
+            logging.debug(f'{keyindex} repeat')
             mistake = Repeat(self.settings, keyindex)
             self.canvas_frame.insert_mistake(mistake)
         # skip
         elif self.last_keyindex is not None:
             skipped = list(modular_range(self.settings.KEYS, self.last_keyindex + 1, keyindex))
+            logging.debug(f'skipped keys: {skipped}')
             if skipped:
                 mistake = Skip(self.settings, skipped)
                 self.canvas_frame.insert_mistake(mistake)
