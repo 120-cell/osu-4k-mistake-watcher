@@ -183,37 +183,43 @@ class App(tk.Tk):
                 
                 
     def handle_event(self, event):
-        
-        if isinstance(event, mouse.ButtonEvent):
-            bind = MOUSE_BUTTON_NAMES[event.button]
-            keyindex = self.settings.binds.index(bind)
-        else:
-            keyindex = self.settings.binds.index(event.name)
+        keyindex = self.find_keyindex(event)
             
         # keyindex KEYS clears the canvas
         if keyindex == self.settings.KEYS:
             if event.event_type == kb.KEY_DOWN or event.event_type == mouse.DOWN:
                 self.canvas_frame.clear()
             return
-        
         # releases do not trigger mistakes
         if event.event_type == kb.KEY_UP or event.event_type == mouse.UP:
             self.pressed[keyindex] = False
             if not any(self.pressed):
                 self.full_release_time = datetime.now()
             return
-        
         # repeated keydown events due to holding are not registered
         if self.pressed[keyindex]:
             return
-        
         # if all keys have been released for a while, no mistakes are triggered
         if self.full_release_time:
             timedelta = datetime.now() - self.full_release_time
             self.full_release_time = None
             if timedelta.seconds >= 3:
                 return
+            
+        self.check_for_mistake(keyindex)
+        self.pressed[keyindex] = True
+        self.last_keyindex = keyindex
+        return
+    
+    def find_keyindex(self, event):
+        if isinstance(event, mouse.ButtonEvent):
+            bind = MOUSE_BUTTON_NAMES[event.button]
+            return self.settings.binds.index(bind)
+        else:
+            return self.settings.binds.index(event.name)
         
+        
+    def check_for_mistake(self, keyindex):
         two_back = (keyindex - 2) % self.settings.KEYS
         # keylock
         if self.pressed[two_back]:
@@ -229,9 +235,6 @@ class App(tk.Tk):
             if skipped:
                 mistake = Skip(self.settings, skipped)
                 self.canvas_frame.insert_mistake(mistake)
-                
-        self.pressed[keyindex] = True
-        self.last_keyindex = keyindex
         return
     
     
@@ -259,7 +262,8 @@ class App(tk.Tk):
         self.settings.save()
         self.destroy()
         
-        
+
+
 def modular_range(modulus, start, end):
     start = start % modulus
     end = end % modulus
