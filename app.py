@@ -65,7 +65,7 @@ class App(tk.Tk):
                                                  command=colour_command_factory(keyindex)))
             self.colour_buttons[keyindex].grid(column=0, row=keyindex, padx=10, pady=5)
             self.keybind_buttons.append(ttk.Button(self.keybind_frame,
-                                                   text=f'set key {keyindex+1}',
+                                                   text=f'key {keyindex+1}',
                                                    command=bind_command_factory(keyindex)))
             self.keybind_buttons[keyindex].grid(column=1, row=keyindex, padx=10, pady=5)
             self.keybind_labels.append(ttk.Label(self.keybind_frame,
@@ -77,6 +77,17 @@ class App(tk.Tk):
                                                 textvariable=self.alias_vars[keyindex]))
             self.alias_vars[keyindex].trace('w', entry_command_factory(keyindex))
             self.alias_entries[keyindex].grid(column=3, row=keyindex, padx=10, pady=5)
+            
+        # clear keybind
+        clearindex = self.settings.KEYS
+        self.keybind_buttons.append(ttk.Button(self.keybind_frame,
+                                               text=f'clear',
+                                               command=bind_command_factory(clearindex)))
+        self.keybind_buttons[clearindex].grid(column=1, row=clearindex, padx=10, pady=5)
+        self.keybind_labels.append(ttk.Label(self.keybind_frame,
+                                             text=self.settings.binds[clearindex],
+                                             background='white'))
+        self.keybind_labels[clearindex].grid(column=2, row=clearindex, padx=10, pady=5)
             
         ttk.Label(self.tab1, text='display options', font="tkDefaulFont 14 bold").pack()
         
@@ -178,6 +189,12 @@ class App(tk.Tk):
             keyindex = self.settings.binds.index(bind)
         else:
             keyindex = self.settings.binds.index(event.name)
+            
+        # keyindex KEYS clears the canvas
+        if keyindex == self.settings.KEYS:
+            if event.event_type == kb.KEY_DOWN or event.event_type == mouse.DOWN:
+                self.canvas_frame.clear()
+            return
         
         # releases do not trigger mistakes
         if event.event_type == kb.KEY_UP or event.event_type == mouse.UP:
@@ -185,6 +202,7 @@ class App(tk.Tk):
             if not any(self.pressed):
                 self.full_release_time = datetime.now()
             return
+        
         # repeated keydown events due to holding are not registered
         if self.pressed[keyindex]:
             return

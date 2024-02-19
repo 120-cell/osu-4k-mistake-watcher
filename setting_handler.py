@@ -8,7 +8,7 @@ SETTINGS_PATH = 'settings.p'
 class Setting_Handler():
     def __init__(self):
         self.KEYS = 4
-        self.binds = ['s', 'd', 'f', 'space']
+        self.binds = ['s', 'd', 'f', 'space', '`']
         self.colours = ['#DC0014', '#FF8C0A', '#00C1C1', '#2832E6']
         self.aliases = ['ring', 'middle', 'index', 'thumb']
         
