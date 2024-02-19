@@ -51,9 +51,14 @@ class App(tk.Tk):
         self.alias_entries = []
         self.alias_vars = [tk.StringVar(self, alias) for alias in self.settings.aliases]
         self.ENTRY_LIMIT = 10
+        
+        # we want to set bind_key(1) as the command of the first button, 
+        # bind_key(2) as the command of the second button, etc.
+        # lambdas allow packing the keyindex into the function before setting is as the command.
+        # factories allow looping over the buttons instead of setting each individually.
         bind_command_factory = lambda i: (lambda: self.bind_key(i))
         colour_command_factory = lambda i: (lambda: self.colour_dialog(i))
-        entry_comman_factory = lambda i: (lambda *args: self.on_entry_write(i))
+        entry_command_factory = lambda i: (lambda *args: self.on_entry_write(i))
         for keyindex in range(self.settings.KEYS):
             self.colour_buttons.append(tk.Button(self.keybind_frame,
                                                  background=self.settings.colours[keyindex],
@@ -70,7 +75,7 @@ class App(tk.Tk):
             self.alias_entries.append(ttk.Entry(self.keybind_frame, 
                                                 width=round(self.ENTRY_LIMIT * 1.5),
                                                 textvariable=self.alias_vars[keyindex]))
-            self.alias_vars[keyindex].trace('w', entry_comman_factory(keyindex))
+            self.alias_vars[keyindex].trace('w', entry_command_factory(keyindex))
             self.alias_entries[keyindex].grid(column=3, row=keyindex, padx=10, pady=5)
             
         ttk.Label(self.tab1, text='display options', font="tkDefaulFont 14 bold").pack()
@@ -174,31 +179,33 @@ class App(tk.Tk):
         else:
             keyindex = self.settings.binds.index(event.name)
         
-        #releases do not trigger mistakes
+        # releases do not trigger mistakes
         if event.event_type == kb.KEY_UP or event.event_type == mouse.UP:
             self.pressed[keyindex] = False
             if not any(self.pressed):
                 self.full_release_time = datetime.now()
             return
-        #repeated keydown events due to holding are not registered
+        # repeated keydown events due to holding are not registered
         if self.pressed[keyindex]:
             return
         
+        # if all keys have been released for a while, no mistakes are triggered
         if self.full_release_time:
             timedelta = datetime.now() - self.full_release_time
+            self.full_release_time = None
             if timedelta.seconds >= 3:
-                self.full_release_time = None
                 return
         
         two_back = (keyindex - 2) % self.settings.KEYS
+        # keylock
         if self.pressed[two_back]:
             mistake = Keylock(self.settings, [two_back, keyindex])
             self.canvas_frame.insert_mistake(mistake)
-            
+        # repeat
         if keyindex == self.last_keyindex:
             mistake = Repeat(self.settings, keyindex)
             self.canvas_frame.insert_mistake(mistake)
-            
+        # skip
         elif self.last_keyindex is not None:
             skipped = list(modular_range(self.settings.KEYS, self.last_keyindex + 1, keyindex))
             if skipped:

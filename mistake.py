@@ -13,7 +13,7 @@ class Mistake():
         self.aliases = copy.deepcopy(self.settings.aliases)
         self.time = datetime.now()
             
-    def get_displays(self):
+    def get_display_values (self):
         match self.settings.key_display_method:
             case 'key numbers':
                 return [str(i + 1) for i in self.keyindices]
@@ -35,14 +35,14 @@ class Keylock(Mistake):
         super().__init__(settings, keyindices)
     
     def create_canvas_line(self, canvas, x, y):
-        displays = self.get_displays()
+        display_values = self.get_display_values()
         colours = self.get_colours()
         line = Canvas_Textline(self.settings, canvas, x, y)
         line.add_text(self.time.strftime('[%H:%M:%S] '), fill='gray')
         line.add_text('keylocked ')
-        line.add_text(displays[0], fill=colours[0])
+        line.add_text(display_values[0], fill=colours[0])
         line.add_text('-')
-        line.add_text(displays[1], fill=colours[1])
+        line.add_text(display_values[1], fill=colours[1])
         return line
     
     
@@ -55,12 +55,12 @@ class Repeat(Mistake):
             super().__init__(settings, [keyindices])
     
     def create_canvas_line(self, canvas, x, y):
-        displays = self.get_displays()
+        display_values = self.get_display_values()
         colours = self.get_colours()
         line = Canvas_Textline(self.settings, canvas, x, y)
         line.add_text(self.time.strftime('[%H:%M:%S] '), fill='gray')
         line.add_text('repeated ')
-        line.add_text(displays[0], fill=colours[0])
+        line.add_text(display_values[0], fill=colours[0])
         return line
     
     
@@ -73,13 +73,13 @@ class Skip(Mistake):
             super().__init__(settings, [keyindices])
     
     def create_canvas_line(self, canvas, x, y):
-        displays = self.get_displays()
+        display_values = self.get_display_values()
         colours = self.get_colours()
         line = Canvas_Textline(self.settings, canvas, x, y)
         line.add_text(self.time.strftime('[%H:%M:%S] '), fill='gray')
         line.add_text('skipped ')
-        for display, colour in zip(displays[:-1], colours[:-1]):
-            line.add_text(display, fill=colour)
+        for display_value, colour in zip(display_values[:-1], colours[:-1]):
+            line.add_text(display_value, fill=colour)
             line.add_text(', ')
-        line.add_text(displays[-1], fill=colours[-1])
+        line.add_text(display_values[-1], fill=colours[-1])
         return line

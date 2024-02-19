@@ -18,6 +18,7 @@ def main():
         with open(SETTINGS_PATH, 'rb') as file:
             settings = pickle.load(file)
     except FileNotFoundError:
+        logging.warning('could not load settings from file, falling back to defaults')
         settings = Setting_Handler()
         
     app = App(settings)

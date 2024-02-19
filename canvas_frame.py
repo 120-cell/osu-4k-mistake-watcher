@@ -80,18 +80,22 @@ class Canvas_Frame(ttk.Frame):
     def get_max_linewidth(self):
         canvas = tk.Canvas(self)
         mistake = Mistake(self.settings, list(range(self.settings.KEYS)))
-        displays = mistake.get_displays()
+        display_values = mistake.get_display_values()
         widths = []
-        for display in displays:
-            text = canvas.create_text(0, 0, text=display, font=f'tkDefaultFont {self.settings.font_size}')
+        # largest width of individual display value
+        for display_value in display_values:
+            text = canvas.create_text(0, 0, text=display_value, font=f'tkDefaultFont {self.settings.font_size}')
             widths.append(canvas.bbox(text)[2] - canvas.bbox(text)[0])
         max_display_width = max(widths)
         
+        # width of time display, mistake name, and punctuation
         extra_text_1 = canvas.create_text(0, 0, text='[00:00:00] keylocked -', font=f'tkDefaultFont {self.settings.font_size}')
         extra_width_1 = canvas.bbox(extra_text_1)[2] - canvas.bbox(extra_text_1)[0]
         text = '[00:00:00] skipped '+', ' * (self.settings.KEYS - 3)
         extra_text_2 = canvas.create_text(0, 0, text=text, font=f'tkDefaultFont {self.settings.font_size}')
         extra_width_2 = canvas.bbox(extra_text_2)[2] - canvas.bbox(extra_text_2)[0]
         
+        # the true max could either be "keylocked" with two max width display values
+        # or "skipped" with KEYS minus 2 max width display values
         return max(2 * max_display_width + extra_width_1,
                    (self.settings.KEYS - 2) * max_display_width + extra_width_2)
