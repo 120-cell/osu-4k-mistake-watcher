@@ -254,7 +254,7 @@ class App(tk.Tk):
         
     def check_for_mistake(self, keyindex):
         logging.debug(f'checking for mistakes')
-        logging.debug(f'currently pressed: {self.pressed}, current keyindex: {keyindex}')
+        logging.debug(f'currently pressed: {self.pressed}, current keyindex: {keyindex}, last keyindex {self.last_keyindex}')
         two_back = (keyindex - 2) % self.settings.KEYS
         # keylock
         if self.pressed[two_back]:
