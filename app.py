@@ -10,6 +10,7 @@ import re
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import simpledialog
+from time import sleep
 
 from mistake import Keylock, Repeat, Skip
 from canvas_frame import Canvas_Frame
@@ -157,20 +158,38 @@ class App(tk.Tk):
             
     
     def bind_key(self, keyindex):
-        key = workaround_read_key()
-        if key is None or key in self.settings.binds:
-            return
         # if key in self.settings.binds:
         #     old_position = self.settings.binds.index(key)
         #     self.settings.binds[old_position] = None
         #     self.keybind_labels[old_position].config(text=' ')
         #     logging.info(f'key {old_position} unbound')
-            
-        self.settings.binds[keyindex] = key
-        self.keybind_labels[keyindex].config(text=key)
+        self.disable_keybind_buttons()
+        self.update_idletasks()
+        logging.debug(f'disabled buttons')
+        
+        key = workaround_read_key()
+        self.update()
+        
+        self.enable_keybind_buttons()
+        logging.debug(f'enabled buttons')
+        
+        if key is None or key in self.settings.binds:
+            logging.info('no binds were set')
+        else:
+            self.settings.binds[keyindex] = key
+            self.keybind_labels[keyindex].config(text=key)
         self.refresh_hooks()
         logging.debug(f'current binds: {self.settings.binds}')
         
+        
+    def disable_keybind_buttons(self):
+        for button in chain(self.keybind_buttons, self.colour_buttons):
+            button['state'] = tk.DISABLED
+        return
+    
+    def enable_keybind_buttons(self):
+        for button in chain(self.keybind_buttons, self.colour_buttons):
+            button['state'] = tk.NORMAL
         
     def refresh_hooks(self):
         kb.unhook_all()
