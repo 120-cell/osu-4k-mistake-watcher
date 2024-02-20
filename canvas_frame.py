@@ -69,7 +69,7 @@ class Canvas_Frame(ttk.Frame):
             
             
     def refresh(self):
-        logging.debug('refreshing canvas')
+        logging.info('refreshing canvas')
         self.configure(width=self.get_max_linewidth() + self.settings.font_size)
         self.canvas.delete('all')
         self.canvas_lines = []

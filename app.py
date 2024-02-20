@@ -232,6 +232,7 @@ class App(tk.Tk):
             self.full_release_time = None
             if timedelta.seconds >= 3:
                 self.pressed[keyindex] = True
+                
                 logging.debug(f'enough time has passed since full release, ignoring keypress {keyindex}')
                 return
             logging.debug(f'not enough time has passed since full release, continuing')
@@ -269,8 +270,8 @@ class App(tk.Tk):
         # skip
         elif self.last_keyindex is not None:
             skipped = list(modular_range(self.settings.KEYS, self.last_keyindex + 1, keyindex))
-            logging.debug(f'skipped keys: {skipped}')
             if skipped:
+                logging.debug(f'skipped keys: {skipped}')
                 mistake = Skip(self.settings, skipped)
                 self.canvas_frame.insert_mistake(mistake)
         return
