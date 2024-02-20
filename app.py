@@ -167,17 +167,17 @@ class App(tk.Tk):
         self.update_idletasks()
         logging.debug(f'disabled buttons')
         
-        key = workaround_read_key()
+        event_name = workaround_read_key()
         self.update()
         
         self.enable_keybind_buttons()
         logging.debug(f'enabled buttons')
         
-        if key is None or key in self.settings.binds:
+        if event_name is None or event_name.lower() in self.settings.binds:
             logging.info('no binds were set')
         else:
-            self.settings.binds[keyindex] = key
-            self.keybind_labels[keyindex].config(text=key)
+            self.settings.binds[keyindex] = event_name.lower()
+            self.keybind_labels[keyindex].config(text=event_name)
         self.refresh_hooks()
         logging.debug(f'current binds: {self.settings.binds}')
         
@@ -248,9 +248,9 @@ class App(tk.Tk):
     def find_keyindex(self, event):
         if isinstance(event, mouse.ButtonEvent):
             bind = MOUSE_BUTTON_NAMES[event.button]
-            return self.settings.binds.index(bind)
+            return self.settings.binds.index(bind.lower())
         else:
-            return self.settings.binds.index(event.name)
+            return self.settings.binds.index(event.name.lower())
         
         
     def check_for_mistake(self, keyindex):
