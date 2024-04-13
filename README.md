@@ -1,4 +1,4 @@
-requires the keyboard and mouse module. To install them, run:
+requires python 3.10 or above, as well as the keyboard and mouse module. To install them, run:
 
 ```
 pip install keyboard
