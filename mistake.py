@@ -9,7 +9,7 @@ class Mistake():
     def __init__(self, settings, keyindices):
         self.settings = settings
         self.keyindices = keyindices
-        self.binds = copy.deepcopy(self.settings.binds)
+        self.binds = copy.deepcopy(self.settings.bind_names)
         self.aliases = copy.deepcopy(self.settings.aliases)
         self.time = datetime.now()
             

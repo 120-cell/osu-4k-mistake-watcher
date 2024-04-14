@@ -4,8 +4,6 @@ from itertools import chain
 import keyboard as kb
 import mouse
 import logging
-from queue import Queue
-from _queue import Empty
 import re
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -14,13 +12,9 @@ from time import sleep
 
 from mistake import Keylock, Repeat, Skip
 from canvas_frame import Canvas_Frame
+from input_utils import MOUSE_BUTTON_NAMES, workaround_read_event
+from input_utils import hook_scan_code, on_mouse_button
 
-MOUSE_BUTTON_NAMES = {'left': 'Button-1', 
-                      'right':'Button-2', 
-                      'middle':'Button-3', 
-                      'x':'Button-X',
-                      'x2':'Button-X2'}
-MOUSE_REVERSE_NAMES = {val: key for key, val in MOUSE_BUTTON_NAMES.items()}
 
 class App(tk.Tk):
 
@@ -41,7 +35,7 @@ class App(tk.Tk):
 
         self.tab_control.pack(expand=1, fill='both')
         
-        ttk.Label(self.tab1, text='key binds', font="tkDefaulFont 14 bold").pack()
+        ttk.Label(self.tab1, text='key bind_names', font="tkDefaulFont 14 bold").pack()
         
         self.keybind_frame = ttk.Frame(self.tab1)
         self.keybind_frame.pack()
@@ -70,7 +64,7 @@ class App(tk.Tk):
                                                    command=bind_command_factory(keyindex)))
             self.keybind_buttons[keyindex].grid(column=1, row=keyindex, padx=10, pady=5)
             self.keybind_labels.append(ttk.Label(self.keybind_frame,
-                                                 text=self.settings.binds[keyindex],
+                                                 text=self.settings.bind_names[keyindex],
                                                  background='white'))
             self.keybind_labels[keyindex].grid(column=2, row=keyindex, padx=10, pady=5)
             self.alias_entries.append(ttk.Entry(self.keybind_frame, 
@@ -86,7 +80,7 @@ class App(tk.Tk):
                                                command=bind_command_factory(clearindex)))
         self.keybind_buttons[clearindex].grid(column=1, row=clearindex, padx=10, pady=5)
         self.keybind_labels.append(ttk.Label(self.keybind_frame,
-                                             text=self.settings.binds[clearindex],
+                                             text=self.settings.bind_names[clearindex],
                                              background='white'))
         self.keybind_labels[clearindex].grid(column=2, row=clearindex, padx=10, pady=5)
             
@@ -99,9 +93,9 @@ class App(tk.Tk):
         self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='key numbers', 
                                                       command=self.update_display_settings,
                                                       value='key numbers', variable=self.key_display_var))
-        self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='key binds', 
+        self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='key bind_names', 
                                                       command=self.update_display_settings,
-                                                      value='key binds', variable=self.key_display_var))
+                                                      value='key bind_names', variable=self.key_display_var))
         self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='aliases', 
                                                       command=self.update_display_settings,
                                                       value='aliases', variable=self.key_display_var))
@@ -158,28 +152,38 @@ class App(tk.Tk):
             
     
     def bind_key(self, keyindex):
-        # if key in self.settings.binds:
-        #     old_position = self.settings.binds.index(key)
-        #     self.settings.binds[old_position] = None
+        # if key in self.settings.bind_names:
+        #     old_position = self.settings.bind_names.index(key)
+        #     self.settings.bind_names[old_position] = None
         #     self.keybind_labels[old_position].config(text=' ')
         #     logging.info(f'key {old_position} unbound')
         self.disable_keybind_buttons()
         self.update_idletasks()
         logging.debug(f'disabled buttons')
-        
-        event_name = workaround_read_key()
+        event = workaround_read_event()
         self.update()
-        
         self.enable_keybind_buttons()
         logging.debug(f'enabled buttons')
         
-        if event_name is None or event_name.lower() in self.settings.binds:
-            logging.info('no binds were set')
+        if event is None:
+            logging.info('no input registered, no bind_names were set')
+            return False
+            
+        if isinstance(event, mouse.ButtonEvent):
+            code = event.button
+            name = MOUSE_BUTTON_NAMES[code]
         else:
-            self.settings.binds[keyindex] = event_name.lower()
-            self.keybind_labels[keyindex].config(text=event_name)
+            code = event.scan_code
+            name = event.name
+        if code in self.settings.bind_codes:
+            logging.info('bind already exists')
+            return False
+        self.settings.bind_names[keyindex] = name
+        self.settings.bind_codes[keyindex] = code
+        self.keybind_labels[keyindex].config(text=name)
         self.refresh_hooks()
-        logging.debug(f'current binds: {self.settings.binds}')
+        logging.debug(f'current bind_names: {self.settings.bind_names}')
+        return True
         
         
     def disable_keybind_buttons(self):
@@ -193,15 +197,15 @@ class App(tk.Tk):
         
     def refresh_hooks(self):
         kb.unhook_all()
-        for bind in self.settings.binds:
-            if bind in MOUSE_REVERSE_NAMES:
-                button = MOUSE_REVERSE_NAMES[bind]
-                on_mouse_button(button, self.handle_event)
-            elif bind:
-                kb.hook_key(bind, self.handle_event)
+        for code in self.settings.bind_codes:
+            if code in MOUSE_BUTTON_NAMES:
+                on_mouse_button(code, self.handle_event)
+            elif code:
+                hook_scan_code(code, self.handle_event)
                 
                 
     def handle_event(self, event):
+        print(self.settings.bind_codes)
         keyindex = self.find_keyindex(event)
         logging.debug(f'registered keyindex {keyindex}')
         
@@ -247,10 +251,10 @@ class App(tk.Tk):
     
     def find_keyindex(self, event):
         if isinstance(event, mouse.ButtonEvent):
-            bind = MOUSE_BUTTON_NAMES[event.button]
-            return self.settings.binds.index(bind.lower())
+            code = event.button
         else:
-            return self.settings.binds.index(event.name.lower())
+            code = event.scan_code
+        return self.settings.bind_codes.index(code)
         
         
     def check_for_mistake(self, keyindex):
@@ -320,36 +324,3 @@ def is_hexcode(code):
         return True
     logging.info('hexcode string is invalid')
     return False
-        
-        
-def workaround_read_event(suppress=False):
-    queue = Queue(maxsize=1)
-    kb_hooked = kb.hook(queue.put, suppress=suppress)
-            
-    mouse_hooked = mouse.hook(lambda event: queue.put(event) if isinstance(event, mouse.ButtonEvent) else None)
-    try:
-        event = queue.get(timeout=3)
-        return event
-    except Empty:
-        logging.info('key binding timed out')
-    finally:
-        kb.unhook(kb_hooked)
-        mouse.unhook_all()
-    
-    
-def workaround_read_key(suppress=False):
-    event = workaround_read_event(suppress)
-    if isinstance(event, mouse.ButtonEvent):
-        return MOUSE_BUTTON_NAMES[event.button]
-    elif event:
-        return event.name
-    return None
-
-
-def on_mouse_button(button, callback):
-    def handler(event):
-        if isinstance(event, mouse.ButtonEvent):
-            if event.event_type and event.button == button:
-                callback(event)
-    mouse._listener.add_handler(handler)
-    return handler
