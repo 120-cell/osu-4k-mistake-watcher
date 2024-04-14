@@ -205,7 +205,6 @@ class App(tk.Tk):
                 
                 
     def handle_event(self, event):
-        print(self.settings.bind_codes)
         keyindex = self.find_keyindex(event)
         logging.debug(f'registered keyindex {keyindex}')
         
