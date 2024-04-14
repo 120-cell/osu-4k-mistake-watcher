@@ -35,7 +35,7 @@ class App(tk.Tk):
 
         self.tab_control.pack(expand=1, fill='both')
         
-        ttk.Label(self.tab1, text='key bind_names', font="tkDefaulFont 14 bold").pack()
+        ttk.Label(self.tab1, text='key binds', font="tkDefaulFont 14 bold").pack()
         
         self.keybind_frame = ttk.Frame(self.tab1)
         self.keybind_frame.pack()
@@ -83,7 +83,8 @@ class App(tk.Tk):
                                              text=self.settings.bind_names[clearindex],
                                              background='white'))
         self.keybind_labels[clearindex].grid(column=2, row=clearindex, padx=10, pady=5)
-            
+        
+        # display options
         ttk.Label(self.tab1, text='display options', font="tkDefaulFont 14 bold").pack()
         
         self.key_display_var = tk.StringVar(self, self.settings.key_display_method)
@@ -93,9 +94,9 @@ class App(tk.Tk):
         self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='key numbers', 
                                                       command=self.update_display_settings,
                                                       value='key numbers', variable=self.key_display_var))
-        self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='key bind_names', 
+        self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='key binds', 
                                                       command=self.update_display_settings,
-                                                      value='key bind_names', variable=self.key_display_var))
+                                                      value='key binds', variable=self.key_display_var))
         self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='aliases', 
                                                       command=self.update_display_settings,
                                                       value='aliases', variable=self.key_display_var))
