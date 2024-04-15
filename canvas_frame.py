@@ -1,10 +1,12 @@
 
 from collections import deque
+import datetime
 import logging
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from mistake import Mistake
+from mistake import Keylock, Skip
+from utils import modular_range
 
 
 class Canvas_Frame(ttk.Frame):
@@ -79,23 +81,17 @@ class Canvas_Frame(ttk.Frame):
     
     def get_max_linewidth(self):
         canvas = tk.Canvas(self)
-        mistake = Mistake(self.settings, list(range(self.settings.KEYS)))
-        display_values = mistake.get_display_values()
+        # possible longest line widths
         widths = []
-        # largest width of individual display value
-        for display_value in display_values:
-            text = canvas.create_text(0, 0, text=display_value, font=f'tkDefaultFont {self.settings.font_size}')
-            widths.append(canvas.bbox(text)[2] - canvas.bbox(text)[0])
-        max_display_width = max(widths)
-        
-        # width of time display, mistake name, and punctuation
-        extra_text_1 = canvas.create_text(0, 0, text='[00:00:00] keylocked -', font=f'tkDefaultFont {self.settings.font_size}')
-        extra_width_1 = canvas.bbox(extra_text_1)[2] - canvas.bbox(extra_text_1)[0]
-        text = '[00:00:00] skipped '+', ' * (self.settings.KEYS - 3)
-        extra_text_2 = canvas.create_text(0, 0, text=text, font=f'tkDefaultFont {self.settings.font_size}')
-        extra_width_2 = canvas.bbox(extra_text_2)[2] - canvas.bbox(extra_text_2)[0]
-        
-        # the true max could either be "keylocked" with two max width display values
-        # or "skipped" with KEYS minus 2 max width display values
-        return max(2 * max_display_width + extra_width_1,
-                   (self.settings.KEYS - 2) * max_display_width + extra_width_2)
+        widest_time = datetime.time(hour=0, minute=0, second=0)
+        for i in range(self.settings.KEYS):
+            # keylocked
+            keylock = Keylock(self.settings, [i, (i+2) % self.settings.KEYS], widest_time)
+            line = keylock.create_canvas_line(canvas, 0, 0)
+            widths.append(line.width)
+            # skipped
+            skip = Skip(self.settings, [j for j in modular_range(self.settings.KEYS, i, i-2)], widest_time)
+            line = skip.create_canvas_line(canvas, 0, 0)
+            widths.append(line.width)
+        logging.debug(f'possible max line widths: {widths}')
+        return max(widths)

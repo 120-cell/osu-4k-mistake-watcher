@@ -1,8 +1,8 @@
 
 from datetime import datetime
-from itertools import chain
 import keyboard as kb
 import mouse
+from itertools import chain
 import logging
 import re
 import tkinter as tk
@@ -12,6 +12,7 @@ from time import sleep
 
 from mistake import Keylock, Repeat, Skip
 from canvas_frame import Canvas_Frame
+from utils import modular_range, is_hexcode
 from input_utils import MOUSE_BUTTON_NAMES, workaround_read_event
 from input_utils import hook_scan_code, on_mouse_button
 
