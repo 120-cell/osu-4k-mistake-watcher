@@ -107,13 +107,17 @@ class App(tk.Tk):
         
         self.font_size_frame = ttk.Frame(self.tab1)
         self.font_size_frame.pack()
-        self.font_size_button = ttk.Button(self.font_size_frame, text='set font size', command=self.font_size_dialog)
+        self.font_size_button = ttk.Button(self.font_size_frame, text='set font size', 
+                                           command=self.font_size_dialog)
         self.font_size_button.grid(row=0, column=0, padx=10, pady=5)
-        self.font_size_label = ttk.Label(self.font_size_frame, text=str(self.settings.font_size), background='white')
+        self.font_size_label = ttk.Label(self.font_size_frame, text=str(self.settings.font_size), 
+                                         background='white')
         self.font_size_label.grid(row=0, column=1, padx=10, pady=5)
         
-        self.colour_var = tk.IntVar(self, self.settings.colour)
-        self.colour_check = tk.Checkbutton(self.tab1, text='colour keys', command=self.update_display_settings, variable=self.colour_var)
+        self.do_colour_var = tk.BooleanVar(self, self.settings.do_colour)
+        self.colour_check = tk.Checkbutton(self.tab1, text='colour keys', 
+                                           command=self.update_display_settings, 
+                                           variable=self.do_colour_var)
         self.colour_check.pack()
         
         self.canvas_frame = Canvas_Frame(self.settings, self.tab2, width=400, height=600)
@@ -129,11 +133,11 @@ class App(tk.Tk):
         
     def update_display_settings(self):
         self.settings.key_display_method = self.key_display_var.get()
-        self.settings.colour = self.colour_var.get()
+        self.settings.do_colour = self.do_colour_var.get()
         self.canvas_frame.refresh()
         logging.info(f'current display method: {self.settings.key_display_method}')
-        logging.info(f'current colour mode: {self.settings.colour}')
-        if self.settings.colour:
+        logging.info(f'current colour mode: {self.settings.do_colour}')
+        if self.settings.do_colour:
             for colour_button in self.colour_buttons:
                 colour_button.grid()
         else:

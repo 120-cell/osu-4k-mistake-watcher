@@ -26,7 +26,7 @@ class Mistake():
                 return [self.aliases[i] for i in self.keyindices]
             
     def get_colours(self):
-        if self.settings.colour:
+        if self.settings.do_colour:
             return [self.settings.colours[i] for i in self.keyindices]
         else:
             return ['black' for i in self.keyindices]

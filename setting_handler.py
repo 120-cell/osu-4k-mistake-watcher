@@ -19,7 +19,8 @@ class Setting_Handler():
         self.font_size = 18
         self.relative_pad_left = 0.5
         self.line_spacing = 1.5
-        self.colour = 1
+        self.do_colour = True
+
         
     def save(self, settings_path='settings.p'):
         logging.info('saving settings to file')
