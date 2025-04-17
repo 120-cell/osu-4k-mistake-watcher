@@ -6,12 +6,15 @@ import logging
 from canvas_textline import Canvas_Textline
 
 class Mistake():
-    def __init__(self, settings, keyindices, time=datetime.now()):
+    def __init__(self, settings, keyindices, time=None):
         self.settings = settings
         self.keyindices = keyindices
         self.binds = copy.deepcopy(self.settings.bind_names)
         self.aliases = copy.deepcopy(self.settings.aliases)
-        self.time = time
+        if time is None:
+            self.time = datetime.now()
+        else:
+            self.time = time
             
     def get_display_values (self):
         match self.settings.key_display_method:
@@ -31,7 +34,7 @@ class Mistake():
     
 class Keylock(Mistake):
     
-    def __init__(self, settings, keyindices, time=datetime.now()):
+    def __init__(self, settings, keyindices, time=None):
         super().__init__(settings, keyindices, time)
     
     def create_canvas_line(self, canvas, x, y):
@@ -48,7 +51,7 @@ class Keylock(Mistake):
     
 class Repeat(Mistake):
     
-    def __init__(self, settings, keyindices, time=datetime.now()):
+    def __init__(self, settings, keyindices, time=None):
         if isinstance(keyindices, list):
             super().__init__(settings, keyindices, time)
         else:
@@ -66,7 +69,7 @@ class Repeat(Mistake):
     
 class Skip(Mistake):
     
-    def __init__(self, settings, keyindices, time=datetime.now()):
+    def __init__(self, settings, keyindices, time=None):
         if isinstance(keyindices, list):
             super().__init__(settings, keyindices, time)
         else:
