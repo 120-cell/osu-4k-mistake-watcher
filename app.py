@@ -120,6 +120,26 @@ class App(tk.Tk):
                                            variable=self.do_colour_var)
         self.colour_check.pack()
         
+        # behavior options
+        ttk.Label(self.tab1, text='behavior', font="tkDefaulFont 14 bold").pack()
+
+        self.do_full_release_var = tk.BooleanVar(self, self.settings.do_full_release)
+        self.full_release_check = tk.Checkbutton(self.tab1, text='ignore mistakes after full release',
+                                                 command=self.update_display_settings,
+                                                 variable=self.do_full_release_var)
+        self.full_release_check.pack()
+
+        self.release_delay_frame = ttk.Frame(self.tab1)
+        self.release_delay_frame.pack()
+        self.release_delay_button = ttk.Button(self.release_delay_frame, text='set delay',
+                                               command=self.release_delay_dialog)
+        self.release_delay_button.grid(row=0, column=0, padx=10, pady=5)
+        self.release_delay_label = ttk.Label(self.release_delay_frame, 
+                                             text=str(self.settings.release_seconds),
+                                             background='white')
+        self.release_delay_label.grid(row=0, column=1, padx=10, pady=5)
+
+        # display
         self.canvas_frame = Canvas_Frame(self.settings, self.tab2, width=400, height=600)
         self.canvas_frame.grid(row=2, column=0, sticky='nw')
         self.canvas_frame.grid_rowconfigure(0, weight=1)
@@ -134,9 +154,11 @@ class App(tk.Tk):
     def update_display_settings(self):
         self.settings.key_display_method = self.key_display_var.get()
         self.settings.do_colour = self.do_colour_var.get()
+        self.settings.do_full_release = self.do_full_release_var.get()
         self.canvas_frame.refresh()
         logging.info(f'current display method: {self.settings.key_display_method}')
         logging.info(f'current colour mode: {self.settings.do_colour}')
+        logging.info(f'current full release mode: {self.settings.do_full_release}')
         if self.settings.do_colour:
             for colour_button in self.colour_buttons:
                 colour_button.grid()
@@ -149,6 +171,14 @@ class App(tk.Tk):
         else:
             for entry in self.alias_entries:
                 entry.grid_remove()
+        if self.settings.do_full_release:
+            self.release_delay_button.grid()
+            self.release_delay_label.grid()
+        else:
+            self.release_delay_button.grid_remove()
+            self.release_delay_label.grid_remove()
+
+        
         
     
     def on_entry_write(self, keyindex):
@@ -239,7 +269,7 @@ class App(tk.Tk):
             logging.debug('registered first keydown event after full release')
             timedelta = datetime.now() - self.full_release_time
             self.full_release_time = None
-            if timedelta.seconds >= 3:
+            if self.settings.do_full_release and timedelta.seconds >= self.settings.release_seconds:
                 self.pressed[keyindex] = True
                 self.last_keyindex = keyindex
                 logging.debug(f'enough time has passed since full release, ignoring keypress {keyindex}')
@@ -297,13 +327,24 @@ class App(tk.Tk):
             
             
     def font_size_dialog(self):
-        font_size = tk.simpledialog.askinteger('input', 'font size')
+        font_size = tk.simpledialog.askinteger('input', 'font size', parent=self)
         if font_size and 0 < font_size:
             self.settings.font_size = font_size
             self.font_size_label.config(text=str(font_size))
             self.canvas_frame.refresh()
         else:
             logging.info('font size input is not positive')
+
+
+    def release_delay_dialog(self):
+        release_seconds = tk.simpledialog.askfloat('input', 'delay in seconds', parent=self)
+        if release_seconds and 0 < release_seconds:
+            if release_seconds.is_integer():
+                release_seconds = int(release_seconds)
+            self.settings.release_seconds = release_seconds
+            self.release_delay_label.config(text=str(release_seconds))
+        else:
+            logging.info('release period is not positive')
         
     
     def on_close(self):
