@@ -237,7 +237,7 @@ class App(tk.Tk):
             self.full_release_time = None
             if timedelta.seconds >= 3:
                 self.pressed[keyindex] = True
-                
+                self.last_keyindex = keyindex
                 logging.debug(f'enough time has passed since full release, ignoring keypress {keyindex}')
                 return
             logging.debug(f'not enough time has passed since full release, continuing')
