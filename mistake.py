@@ -16,8 +16,8 @@ class Mistake():
         else:
             self.time = time
             
-    def get_display_values (self):
-        match self.settings.key_display_method:
+    def get_display_values (self, key_display_method):
+        match key_display_method:
             case 'key numbers':
                 return [str(i + 1) for i in self.keyindices]
             case 'key binds':
@@ -30,6 +30,9 @@ class Mistake():
             return [self.settings.colours[i] for i in self.keyindices]
         else:
             return ['black' for i in self.keyindices]
+
+    def get_mistake_text(self):
+        raise NotImplementedError()
     
     
 class Keylock(Mistake):
@@ -38,7 +41,7 @@ class Keylock(Mistake):
         super().__init__(settings, keyindices, time)
     
     def create_canvas_line(self, canvas, x, y):
-        display_values = self.get_display_values()
+        display_values = self.get_display_values(self.settings.key_display_method)
         colours = self.get_colours()
         line = Canvas_Textline(self.settings, canvas, x, y)
         line.add_text(self.time.strftime('[%H:%M:%S] '), fill='gray')
@@ -47,6 +50,10 @@ class Keylock(Mistake):
         line.add_text('-')
         line.add_text(display_values[1], fill=colours[1])
         return line
+
+    def get_mistake_text(self):
+        key_numbers = self.get_display_values('key numbers')
+        return f"keylocked {key_numbers[0]}-{key_numbers[1]}"
     
     
 class Repeat(Mistake):
@@ -58,13 +65,17 @@ class Repeat(Mistake):
             super().__init__(settings, [keyindices], time)
     
     def create_canvas_line(self, canvas, x, y):
-        display_values = self.get_display_values()
+        display_values = self.get_display_values(self.settings.key_display_method)
         colours = self.get_colours()
         line = Canvas_Textline(self.settings, canvas, x, y)
         line.add_text(self.time.strftime('[%H:%M:%S] '), fill='gray')
         line.add_text('repeated ')
         line.add_text(display_values[0], fill=colours[0])
         return line
+
+    def get_mistake_text(self):
+        key_numbers = self.get_display_values('key numbers')
+        return f"repeated {key_numbers[0]}"
     
     
 class Skip(Mistake):
@@ -76,7 +87,7 @@ class Skip(Mistake):
             super().__init__(settings, [keyindices], time)
     
     def create_canvas_line(self, canvas, x, y):
-        display_values = self.get_display_values()
+        display_values = self.get_display_values(self.settings.key_display_method)
         colours = self.get_colours()
         line = Canvas_Textline(self.settings, canvas, x, y)
         line.add_text(self.time.strftime('[%H:%M:%S] '), fill='gray')
@@ -86,3 +97,7 @@ class Skip(Mistake):
             line.add_text(', ')
         line.add_text(display_values[-1], fill=colours[-1])
         return line
+
+    def get_mistake_text(self):
+        key_numbers = self.get_display_values('key numbers')
+        return "skipped " + ", ".join(key_numbers)

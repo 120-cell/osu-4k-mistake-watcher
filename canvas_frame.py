@@ -2,6 +2,7 @@
 from collections import deque
 import datetime
 import logging
+import re
 import tkinter as tk
 import tkinter.ttk as ttk
 
@@ -22,13 +23,19 @@ class Canvas_Frame(ttk.Frame):
         self.canvas_lines = []
         self.canvas_y = 0
         
+        self.default_background_colour = 'white'
+        if (self.settings.periphery_mode_enabled):
+            self.canvas.configure(background=self.settings.periphery_background_colour)
     
     def insert_mistake(self, mistake):
         self.mistakes.append(mistake)
-        self.draw_mistake(mistake)
+        if self.settings.periphery_mode_enabled:
+            self.draw_colour_mistake(mistake)
+        else:
+            self.draw_text_mistake(mistake)
         
         
-    def draw_mistake(self, mistake):
+    def draw_text_mistake(self, mistake):
         current_y = len(self.canvas_lines) * self.settings.line_spacing * self.settings.font_size
         new_line = mistake.create_canvas_line(self.canvas, 
                                               self.settings.relative_pad_left * self.settings.font_size, 
@@ -36,7 +43,40 @@ class Canvas_Frame(ttk.Frame):
         self.canvas_lines.append(new_line)
         self.canvas.config(scrollregion=self.canvas.bbox('all'))
         self.canvas.yview_moveto(1)
+
+    def draw_colour_mistake(self, mistake):
+        for rule in self.settings.periphery_rules:
+            if re.search(rule['regex'], mistake.get_mistake_text()):
+                self.flash_background(rule['colour'])
         
+    def flash_background(self, hex_colour):
+        self.current_flash_id = datetime.datetime.now().timestamp()
+        flash_id = self.current_flash_id
+
+        original_colour = self.settings.periphery_background_colour
+
+        def interpolate_colour(start, end, fraction):
+            start_rgb = [int(start[i:i+2], 16) for i in (1, 3, 5)]
+            end_rgb = [int(end[i:i+2], 16) for i in (1, 3, 5)]
+            interp_rgb = [int(s + (e - s) * fraction) for s, e in zip(start_rgb, end_rgb)]
+            return '#{:02x}{:02x}{:02x}'.format(*interp_rgb)
+
+        decay = self.settings.periphery_decay_ms
+        fps = 30
+
+        steps = int(decay / fps)
+        delay = int(decay / steps)
+
+        for step in range(steps + 1):
+            fraction = step / steps
+            colour = interpolate_colour(hex_colour, original_colour, fraction)
+
+            def update_colour(c=colour, fid=flash_id):
+                if self.current_flash_id == fid:
+                    self.canvas.configure(background=c)
+
+            self.after(step * delay, update_colour)
+
         
     def bind_to_mousewheel(self, event):
         # windows
@@ -75,8 +115,9 @@ class Canvas_Frame(ttk.Frame):
         self.configure(width=self.get_max_linewidth() + self.settings.font_size)
         self.canvas.delete('all')
         self.canvas_lines = []
-        for mistake in self.mistakes:
-            self.draw_mistake(mistake)
+        if not self.settings.periphery_mode_enabled:
+            for mistake in self.mistakes:
+                self.draw_text_mistake(mistake)
             
     
     def get_max_linewidth(self):
@@ -95,3 +136,6 @@ class Canvas_Frame(ttk.Frame):
             widths.append(line.width)
         logging.debug(f'possible max line widths: {widths}')
         return max(widths)
+    
+    def set_background_colour(self, hex_colour):
+        self.canvas.configure(background=hex_colour)

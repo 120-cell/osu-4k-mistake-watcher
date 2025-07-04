@@ -1,0 +1,44 @@
+behavior:
+  do_full_release: true
+  release_seconds: 2
+display:
+  do_colour: true
+  font_size: 18
+  key_display_method: key numbers
+  line_spacing: 1.5
+  relative_pad_left: 0.5
+keys:
+  aliases:
+  - ring
+  - middle
+  - index
+  - thumb
+  bind_codes:
+  - 30
+  - 31
+  - 32
+  - 57
+  - 41
+  bind_names:
+  - a
+  - s
+  - d
+  - space
+  - '`'
+  colours:
+  - '#DC0014'
+  - '#FF8C0A'
+  - '#00C1C1'
+  - '#2832E6'
+  count: 4
+periphery_mode:
+  background_colour: '#000000'
+  decay_ms: 400
+  enabled: false
+  rules:
+  - colour: '#FF3333'
+    regex: keylocked 1-3|keylocked 3-1
+  - colour: '#334AFF'
+    regex: keylocked 2-4|keylocked 4-2
+  - colour: '#FF33F9'
+    regex: skipped*|repeat*
