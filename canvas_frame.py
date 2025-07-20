@@ -44,11 +44,13 @@ class Canvas_Frame(ttk.Frame):
         self.canvas.config(scrollregion=self.canvas.bbox('all'))
         self.canvas.yview_moveto(1)
 
+
     def draw_colour_mistake(self, mistake):
         for rule in self.settings.periphery_rules:
             if re.search(rule['regex'], mistake.get_mistake_text()):
                 self.flash_background(rule['colour'])
-        
+
+
     def flash_background(self, hex_colour):
         self.current_flash_id = datetime.datetime.now().timestamp()
         flash_id = self.current_flash_id
@@ -115,7 +117,10 @@ class Canvas_Frame(ttk.Frame):
         self.configure(width=self.get_max_linewidth() + self.settings.font_size)
         self.canvas.delete('all')
         self.canvas_lines = []
-        if not self.settings.periphery_mode_enabled:
+        if self.settings.periphery_mode_enabled:
+            self.set_background_colour(self.settings.periphery_background_colour)
+        else:
+            self.set_background_colour(self.default_background_colour)
             for mistake in self.mistakes:
                 self.draw_text_mistake(mistake)
             

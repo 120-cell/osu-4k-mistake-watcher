@@ -187,10 +187,6 @@ class App(tk.Tk):
         else:
             self.release_delay_button.grid_remove()
             self.release_delay_label.grid_remove()
-        if self.settings.periphery_mode_enabled:
-            self.canvas_frame.set_background_colour(self.settings.periphery_background_colour)
-        else:
-            self.canvas_frame.set_background_colour(self.canvas_frame.default_background_colour)
         self.canvas_frame.refresh()
 
         
