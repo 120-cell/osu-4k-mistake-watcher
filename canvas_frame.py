@@ -64,8 +64,8 @@ class Canvas_Frame(ttk.Frame):
         decay = self.settings.periphery_decay_ms
         fps = 30
 
-        steps = int(decay / fps)
-        delay = int(decay / steps)
+        delay = int(1000 / fps)
+        steps = int(decay / delay)
 
         for step in range(steps + 1):
             fraction = step / steps
