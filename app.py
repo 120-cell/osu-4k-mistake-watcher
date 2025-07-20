@@ -139,6 +139,15 @@ class App(tk.Tk):
                                              background='white')
         self.release_delay_label.grid(row=0, column=1, padx=10, pady=5)
 
+        # periphery mode
+        ttk.Label(self.tab1, text='periphery mode', font='tkDefaulFont 14 bold').pack()
+        self.periphery_mode_enabled = tk.BooleanVar(self, self.settings.periphery_mode_enabled)
+        self.periphery_mode_enabled_check = tk.Checkbutton(self.tab1, text='enable periphery mode',
+                                                           command=self.update_display_settings,
+                                                           variable=self.periphery_mode_enabled)
+        self.periphery_mode_enabled_check.pack()
+        ttk.Label(self.tab1, text='see settings.yaml to modify periphery mode', font='tkDefaulFont 8').pack()
+
         # display
         self.canvas_frame = Canvas_Frame(self.settings, self.tab2, width=400, height=600)
         self.canvas_frame.grid(row=2, column=0, sticky='nw')
@@ -155,10 +164,11 @@ class App(tk.Tk):
         self.settings.key_display_method = self.key_display_var.get()
         self.settings.do_colour = self.do_colour_var.get()
         self.settings.do_full_release = self.do_full_release_var.get()
-        self.canvas_frame.refresh()
+        self.settings.periphery_mode_enabled = self.periphery_mode_enabled.get()
         logging.info(f'current display method: {self.settings.key_display_method}')
         logging.info(f'current colour mode: {self.settings.do_colour}')
         logging.info(f'current full release mode: {self.settings.do_full_release}')
+        logging.info(f'periphery mode enabled: {self.settings.periphery_mode_enabled}')
         if self.settings.do_colour:
             for colour_button in self.colour_buttons:
                 colour_button.grid()
@@ -177,6 +187,7 @@ class App(tk.Tk):
         else:
             self.release_delay_button.grid_remove()
             self.release_delay_label.grid_remove()
+        self.canvas_frame.refresh()
 
         
         

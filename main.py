@@ -17,14 +17,7 @@ def main():
     abspath = os.path.abspath(__file__)
     dirname = os.path.dirname(abspath)
     os.chdir(dirname)
-    try:
-        logging.info('loading settings from file')
-        with open(SETTINGS_PATH, 'rb') as file:
-            settings = pickle.load(file)
-    except FileNotFoundError:
-        logging.warning('could not load settings from file, falling back to defaults')
-        settings = Setting_Handler()
-        
+    settings = Setting_Handler(SETTINGS_PATH)
     app = App(settings)
     app.mainloop()
 
