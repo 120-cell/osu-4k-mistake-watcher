@@ -34,6 +34,9 @@ class Mistake():
     def get_mistake_text(self):
         raise NotImplementedError()
     
+    def create_canvas_line(self, canvas, x, y):
+        raise NotImplementedError()
+        
     
 class Keylock(Mistake):
     

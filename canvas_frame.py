@@ -1,7 +1,9 @@
 
+from apscheduler.schedulers.background import BackgroundScheduler
 from collections import deque
-import datetime
+from datetime import datetime, time, timedelta
 import logging
+from playsound import playsound
 import re
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -26,6 +28,9 @@ class Canvas_Frame(ttk.Frame):
         self.default_background_colour = 'white'
         if (self.settings.periphery_mode_enabled):
             self.canvas.configure(background=self.settings.periphery_background_colour)
+
+        self.sound_scheduler = BackgroundScheduler()
+        self.sound_scheduler.start()
     
     def insert_mistake(self, mistake):
         self.mistakes.append(mistake)
@@ -33,7 +38,8 @@ class Canvas_Frame(ttk.Frame):
             self.draw_colour_mistake(mistake)
         else:
             self.draw_text_mistake(mistake)
-        
+        if self.settings.sound_enabled:
+            self.play_sounds(mistake)
         
     def draw_text_mistake(self, mistake):
         current_y = len(self.canvas_lines) * self.settings.line_spacing * self.settings.font_size
@@ -44,15 +50,13 @@ class Canvas_Frame(ttk.Frame):
         self.canvas.config(scrollregion=self.canvas.bbox('all'))
         self.canvas.yview_moveto(1)
 
-
     def draw_colour_mistake(self, mistake):
         for rule in self.settings.periphery_rules:
             if re.search(rule['regex'], mistake.get_mistake_text()):
                 self.flash_background(rule['colour'])
 
-
     def flash_background(self, hex_colour):
-        self.current_flash_id = datetime.datetime.now().timestamp()
+        self.current_flash_id = datetime.now().timestamp()
         flash_id = self.current_flash_id
 
         original_colour = self.settings.periphery_background_colour
@@ -78,8 +82,14 @@ class Canvas_Frame(ttk.Frame):
                     self.canvas.configure(background=c)
 
             self.after(step * delay, update_colour)
+            
+    def play_sounds(self, mistake):
+        for rule in self.settings.sound_rules:
+            if re.search(rule['regex'], mistake.get_mistake_text()):
+                run_date = datetime.now() + timedelta(milliseconds=rule['delay_ms'])
+                self.sound_scheduler.add_job(playsound, 'date', run_date=run_date, 
+                                             args=(f'sounds/{rule['filename']}',))
 
-        
     def bind_to_mousewheel(self, event):
         # windows
         self.canvas.bind_all('<MouseWheel>', self.on_mousewheel)
@@ -87,14 +97,12 @@ class Canvas_Frame(ttk.Frame):
         self.canvas.bind_all('<Button-4>', self.on_mousewheel)
         self.canvas.bind_all('<Button-5>', self.on_mousewheel)
     
-    
     def unbind_to_mousewheel(self, event):
         # windows
         self.canvas.unbind_all('<MouseWheel>')
         # linux
         self.canvas.unbind_all('<Button-4>')
         self.canvas.unbind_all('<Button-5>')
-    
     
     def on_mousewheel(self, event):
         # windows
@@ -106,11 +114,9 @@ class Canvas_Frame(ttk.Frame):
         elif event.num == 5:
             self.canvas.yview_scroll(1, 'units')
             
-            
     def clear(self):
         self.mistakes = []
         self.refresh()
-            
             
     def refresh(self):
         logging.info('refreshing canvas')
@@ -124,12 +130,11 @@ class Canvas_Frame(ttk.Frame):
             for mistake in self.mistakes:
                 self.draw_text_mistake(mistake)
             
-    
     def get_max_linewidth(self):
         canvas = tk.Canvas(self)
         # possible longest line widths
         widths = []
-        widest_time = datetime.time(hour=0, minute=0, second=0)
+        widest_time = time(hour=0, minute=0, second=0)
         for i in range(self.settings.KEYS):
             # keylocked
             keylock = Keylock(self.settings, [i, (i+2) % self.settings.KEYS], widest_time)

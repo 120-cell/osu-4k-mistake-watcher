@@ -42,3 +42,27 @@ periphery_mode:
     regex: keylocked 2-4|keylocked 4-2
   - colour: '#FF33F9'
     regex: skipped*|repeat*
+sound:
+  enabled: true
+  rules:
+  - filename: keylock.mp3
+    delay_ms: 0
+    regex: keylocked
+  - filename: repeat.mp3
+    delay_ms: 0
+    regex: repeated
+  - filename: skip.mp3
+    delay_ms: 0
+    regex: skipped
+  - filename: 1.mp3
+    delay_ms: 0
+    regex: '(keylocked|repeated|skipped) 1'
+  - filename: 2.mp3
+    delay_ms: 0
+    regex: '(keylocked|repeated|skipped) 2'
+  - filename: 3.mp3
+    delay_ms: 0
+    regex: '(keylocked|repeated|skipped) 3'
+  - filename: 4.mp3
+    delay_ms: 0
+    regex: '(keylocked|repeated|skipped) 4'

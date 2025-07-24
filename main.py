@@ -9,7 +9,7 @@ from setting_handler import Setting_Handler, SETTINGS_PATH
 
 def main():
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.WARNING,
         format='%(asctime)s %(levelname)s %(funcName)s: %(message)s',
         datefmt='%H:%M:%S'
     )

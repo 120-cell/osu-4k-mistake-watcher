@@ -8,7 +8,6 @@ import re
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import simpledialog
-from time import sleep
 
 from mistake import Keylock, Repeat, Skip
 from canvas_frame import Canvas_Frame
@@ -86,7 +85,7 @@ class App(tk.Tk):
         self.keybind_labels[clearindex].grid(column=2, row=clearindex, padx=10, pady=5)
         
         # display options
-        ttk.Label(self.tab1, text='display options', font="tkDefaulFont 14 bold").pack()
+        ttk.Label(self.tab1, text='display options', font="tkDefaultFont 14 bold").pack()
         
         self.key_display_var = tk.StringVar(self, self.settings.key_display_method)
         self.key_display_frame = ttk.Frame(self.tab1)
@@ -121,7 +120,7 @@ class App(tk.Tk):
         self.colour_check.pack()
         
         # behavior options
-        ttk.Label(self.tab1, text='behavior', font="tkDefaulFont 14 bold").pack()
+        ttk.Label(self.tab1, text='behavior', font="tkDefaultFont 14 bold").pack()
 
         self.do_full_release_var = tk.BooleanVar(self, self.settings.do_full_release)
         self.full_release_check = tk.Checkbutton(self.tab1, text='ignore mistakes after full release',
@@ -140,16 +139,26 @@ class App(tk.Tk):
         self.release_delay_label.grid(row=0, column=1, padx=10, pady=5)
 
         # periphery mode
-        ttk.Label(self.tab1, text='periphery mode', font='tkDefaulFont 14 bold').pack()
+        ttk.Label(self.tab1, text='periphery mode', font='tkDefaultFont 14 bold').pack()
         self.periphery_mode_enabled = tk.BooleanVar(self, self.settings.periphery_mode_enabled)
         self.periphery_mode_enabled_check = tk.Checkbutton(self.tab1, text='enable periphery mode',
                                                            command=self.update_display_settings,
                                                            variable=self.periphery_mode_enabled)
         self.periphery_mode_enabled_check.pack()
-        ttk.Label(self.tab1, text='see settings.yaml to modify periphery mode', font='tkDefaulFont 8').pack()
 
-        # display
-        self.canvas_frame = Canvas_Frame(self.settings, self.tab2, width=400, height=600)
+        # sound options
+        ttk.Label(self.tab1, text='sound', font='tkDefaultFont 14 bold').pack()
+        self.sound_enabled = tk.BooleanVar(self, self.settings.sound_enabled)
+        self.sound_enabled_check = tk.Checkbutton(self.tab1, text='enable sound',
+                                                  command=self.update_sound_settings,
+                                                  variable=self.sound_enabled)
+        self.sound_enabled_check.pack()
+        ttk.Label(self.tab1, justify='center',
+                  text='see settings.yaml to modify rules \nfor periphery mode and sound',
+                  font='tkDefaultFont 8').pack()
+
+        # canvas
+        self.canvas_frame = Canvas_Frame(self.settings, self.tab2, width=400, height=650)
         self.canvas_frame.grid(row=2, column=0, sticky='nw')
         self.canvas_frame.grid_rowconfigure(0, weight=1)
         self.canvas_frame.grid_columnconfigure(0, weight=1)
@@ -158,7 +167,6 @@ class App(tk.Tk):
         self.refresh_hooks()
         self.update_display_settings()
         self.protocol('WM_DELETE_WINDOW', self.on_close)
-        
         
     def update_display_settings(self):
         self.settings.key_display_method = self.key_display_var.get()
@@ -189,15 +197,14 @@ class App(tk.Tk):
             self.release_delay_label.grid_remove()
         self.canvas_frame.refresh()
 
-        
-        
-    
+    def update_sound_settings(self):
+        self.settings.sound_enabled = self.sound_enabled.get()
+
     def on_entry_write(self, keyindex):
         self.alias_entries[keyindex].delete(self.ENTRY_LIMIT, 'end')
         self.settings.aliases[keyindex] = self.alias_vars[keyindex].get()
         self.canvas_frame.configure(width=self.canvas_frame.get_max_linewidth() + self.settings.font_size)
             
-    
     def bind_key(self, keyindex):
         # if key in self.settings.bind_names:
         #     old_position = self.settings.bind_names.index(key)
@@ -232,7 +239,6 @@ class App(tk.Tk):
         logging.debug(f'current bind_names: {self.settings.bind_names}')
         return True
         
-        
     def disable_keybind_buttons(self):
         for button in chain(self.keybind_buttons, self.colour_buttons):
             button['state'] = tk.DISABLED
@@ -249,7 +255,6 @@ class App(tk.Tk):
                 on_mouse_button(code, self.handle_event)
             elif code:
                 hook_scan_code(code, self.handle_event)
-                
                 
     def handle_event(self, event):
         keyindex = self.find_keyindex(event)
@@ -302,10 +307,11 @@ class App(tk.Tk):
             code = event.scan_code
         return self.settings.bind_codes.index(code)
         
-        
     def check_for_mistake(self, keyindex):
         logging.debug(f'checking for mistakes')
-        logging.debug(f'currently pressed: {self.pressed}, current keyindex: {keyindex}, last keyindex {self.last_keyindex}')
+        logging.debug(f'currently pressed: {self.pressed}')
+        logging.debug(f'current keyindex: {keyindex}')
+        logging.debug(f'last keyindex: {self.last_keyindex}')
         two_back = (keyindex - 2) % self.settings.KEYS
         # keylock
         if self.pressed[two_back]:
@@ -326,7 +332,6 @@ class App(tk.Tk):
                 self.canvas_frame.insert_mistake(mistake)
         return
     
-    
     def colour_dialog(self, keyindex):
         colour = tk.simpledialog.askstring('input', 'colour hexcode')
         if is_hexcode(colour):
@@ -336,7 +341,6 @@ class App(tk.Tk):
             self.colour_buttons[keyindex].config(bg=colour)
             self.settings.colours[keyindex] = colour
             
-            
     def font_size_dialog(self):
         font_size = tk.simpledialog.askinteger('input', 'font size', parent=self)
         if font_size and 0 < font_size:
@@ -345,7 +349,6 @@ class App(tk.Tk):
             self.canvas_frame.refresh()
         else:
             logging.info('font size input is not positive')
-
 
     def release_delay_dialog(self):
         release_seconds = tk.simpledialog.askfloat('input', 'delay in seconds', parent=self)
@@ -357,7 +360,6 @@ class App(tk.Tk):
         else:
             logging.info('release period is not positive')
         
-    
     def on_close(self):
         self.settings.save()
         self.destroy()

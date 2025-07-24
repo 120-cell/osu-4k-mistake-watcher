@@ -37,6 +37,8 @@ class Setting_Handler:
         self.periphery_decay_ms = settings_data['periphery_mode']['decay_ms']
         self.periphery_background_colour = settings_data['periphery_mode']['background_colour']
         self.periphery_rules = settings_data['periphery_mode']['rules']
+        self.sound_enabled = settings_data['sound']['enabled']
+        self.sound_rules = settings_data['sound']['rules']
 
     def save(self):
         settings_data = {
@@ -63,7 +65,11 @@ class Setting_Handler:
                 'decay_ms': self.periphery_decay_ms,
                 'background_colour': self.periphery_background_colour,
                 'rules': self.periphery_rules,
-            }
+            },
+            'sound': {
+                'enabled': self.sound_enabled,
+                'rules': self.sound_rules,
+            },
         }
 
         try:
