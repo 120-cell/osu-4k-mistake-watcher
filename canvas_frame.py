@@ -88,7 +88,7 @@ class Canvas_Frame(ttk.Frame):
             if re.search(rule['regex'], mistake.get_mistake_text()):
                 run_date = datetime.now() + timedelta(milliseconds=rule['delay_ms'])
                 self.sound_scheduler.add_job(playsound, 'date', run_date=run_date, 
-                                             args=(f'sounds/{rule['filename']}',))
+                                             args=(f"sounds/{rule['filename']}",))
 
     def bind_to_mousewheel(self, event):
         # windows
