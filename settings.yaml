@@ -45,24 +45,24 @@ periphery_mode:
 sound:
   enabled: true
   rules:
-  - filename: keylock.mp3
-    delay_ms: 0
+  - delay_ms: 0
+    filename: keylock.mp3
     regex: keylocked
-  - filename: repeat.mp3
-    delay_ms: 0
+  - delay_ms: 0
+    filename: repeat.mp3
     regex: repeated
-  - filename: skip.mp3
-    delay_ms: 0
+  - delay_ms: 0
+    filename: skip.mp3
     regex: skipped
-  - filename: 1.mp3
-    delay_ms: 0
-    regex: '(keylocked|repeated|skipped) 1'
-  - filename: 2.mp3
-    delay_ms: 0
-    regex: '(keylocked|repeated|skipped) 2'
-  - filename: 3.mp3
-    delay_ms: 0
-    regex: '(keylocked|repeated|skipped) 3'
-  - filename: 4.mp3
-    delay_ms: 0
-    regex: '(keylocked|repeated|skipped) 4'
+  - delay_ms: 0
+    filename: 1.mp3
+    regex: (keylocked|repeated|skipped) 1
+  - delay_ms: 0
+    filename: 2.mp3
+    regex: (keylocked|repeated|skipped) 2
+  - delay_ms: 0
+    filename: 3.mp3
+    regex: (keylocked|repeated|skipped) 3
+  - delay_ms: 0
+    filename: 4.mp3
+    regex: (keylocked|repeated|skipped) 4
