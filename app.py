@@ -49,7 +49,7 @@ class App(tk.Tk):
         
         # we want to set bind_key(1) as the command of the first button, 
         # bind_key(2) as the command of the second button, etc.
-        # lambdas allow packing the keyindex into the function before setting is as the command.
+        # lambdas allow packing the keyindex into the function before setting it as the command.
         # factories allow looping over the buttons instead of setting each individually.
         bind_command_factory = lambda i: (lambda: self.bind_key(i))
         colour_command_factory = lambda i: (lambda: self.colour_dialog(i))
