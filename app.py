@@ -85,6 +85,17 @@ class App(tk.Tk):
         self.keybind_labels.append(ttk.Label(
             self.keybind_frame, text=self.settings.bind_names[index], background='white'))
         self.keybind_labels[index].grid(column=2, row=index, padx=10, pady=5)
+        # toggle analysis keybind
+        index += 1
+        self.analysis_keybind_button = ttk.Button(
+            self.keybind_frame, text=f'clear', command=bind_command_factory(index))
+        self.keybind_buttons.append(self.analysis_keybind_button)
+        self.analysis_keybind_button.grid(column=1, row=index, padx=10, pady=5)
+        self.analysis_keybind_label = ttk.Label(
+            self.keybind_frame, text=self.settings.bind_names[index], background='white')
+        self.keybind_labels.append(self.analysis_keybind_label)
+        self.analysis_keybind_label.grid(column=2, row=index, padx=10, pady=5)
+        
         
         # display options
         ttk.Label(self.tab1, text='display options', font="tkDefaultFont 14 bold").pack()
@@ -139,17 +150,23 @@ class App(tk.Tk):
             self.release_delay_frame, text=str(self.settings.release_seconds), background='white')
         self.release_delay_label.grid(row=0, column=1, padx=10, pady=5)
 
+        # feature toggles
+        ttk.Label(self.tab1, text='features', font='tkDefaultFont 14 bold').pack()
+        # analysis
+        self.analysis_enabled = tk.BooleanVar(self, self.settings.analysis_enabled)
+        self.analysis_enabled_check = tk.Checkbutton(
+            self.tab1, text='enable analysis',
+            command=self.update_display_settings,
+            variable=self.analysis_enabled)
+        self.analysis_enabled_check.pack()
         # periphery mode
-        ttk.Label(self.tab1, text='periphery mode', font='tkDefaultFont 14 bold').pack()
         self.periphery_mode_enabled = tk.BooleanVar(self, self.settings.periphery_mode_enabled)
         self.periphery_mode_enabled_check = tk.Checkbutton(
             self.tab1, text='enable periphery mode',
             command=self.update_display_settings,
             variable=self.periphery_mode_enabled)
         self.periphery_mode_enabled_check.pack()
-
-        # sound options
-        ttk.Label(self.tab1, text='sound', font='tkDefaultFont 14 bold').pack()
+        # sound
         self.sound_enabled = tk.BooleanVar(self, self.settings.sound_enabled)
         self.sound_enabled_check = tk.Checkbutton(
             self.tab1, text='enable sound', command=self.update_sound_settings,
@@ -177,6 +194,7 @@ class App(tk.Tk):
         self.settings.key_display_method = self.key_display_var.get()
         self.settings.do_colour = self.do_colour_var.get()
         self.settings.do_full_release = self.do_full_release_var.get()
+        self.settings.analysis_enabled = self.analysis_enabled.get()
         self.settings.periphery_mode_enabled = self.periphery_mode_enabled.get()
         logging.info(f'current display method: {self.settings.key_display_method}')
         logging.info(f'current colour mode: {self.settings.do_colour}')
@@ -196,6 +214,13 @@ class App(tk.Tk):
         else:
             for entry in self.alias_entries:
                 entry.grid_remove()
+        # toggle analysis toggle button
+        if self.settings.analysis_enabled:
+            self.analysis_keybind_button.grid()
+            self.analysis_keybind_label.grid()
+        else:
+            self.analysis_keybind_button.grid_remove()
+            self.analysis_keybind_label.grid_remove()
         if self.settings.do_full_release:
             self.release_delay_button.grid()
             self.release_delay_label.grid()
