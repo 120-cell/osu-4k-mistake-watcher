@@ -55,34 +55,36 @@ class App(tk.Tk):
         colour_command_factory = lambda i: (lambda: self.colour_dialog(i))
         entry_command_factory = lambda i: (lambda *args: self.on_entry_write(i))
         for keyindex in range(self.settings.KEYS):
-            self.colour_buttons.append(tk.Button(self.keybind_frame,
-                                                 background=self.settings.colours[keyindex],
-                                                 command=colour_command_factory(keyindex)))
+            self.colour_buttons.append(tk.Button(
+                self.keybind_frame,
+                background=self.settings.colours[keyindex],
+                command=colour_command_factory(keyindex)))
             self.colour_buttons[keyindex].grid(column=0, row=keyindex, padx=10, pady=5)
-            self.keybind_buttons.append(ttk.Button(self.keybind_frame,
-                                                   text=f'key {keyindex+1}',
-                                                   command=bind_command_factory(keyindex)))
+            self.keybind_buttons.append(ttk.Button(
+                self.keybind_frame,
+                text=f'key {keyindex+1}',
+                command=bind_command_factory(keyindex)))
             self.keybind_buttons[keyindex].grid(column=1, row=keyindex, padx=10, pady=5)
-            self.keybind_labels.append(ttk.Label(self.keybind_frame,
-                                                 text=self.settings.bind_names[keyindex],
-                                                 background='white'))
+            self.keybind_labels.append(ttk.Label(
+                self.keybind_frame,
+                text=self.settings.bind_names[keyindex],
+                background='white'))
             self.keybind_labels[keyindex].grid(column=2, row=keyindex, padx=10, pady=5)
-            self.alias_entries.append(ttk.Entry(self.keybind_frame, 
-                                                width=round(self.ENTRY_LIMIT * 1.5),
-                                                textvariable=self.alias_vars[keyindex]))
+            self.alias_entries.append(ttk.Entry(
+                self.keybind_frame,
+                width=round(self.ENTRY_LIMIT * 1.5), 
+                textvariable=self.alias_vars[keyindex]))
             self.alias_vars[keyindex].trace('w', entry_command_factory(keyindex))
             self.alias_entries[keyindex].grid(column=3, row=keyindex, padx=10, pady=5)
             
         # clear keybind
-        clearindex = self.settings.KEYS
-        self.keybind_buttons.append(ttk.Button(self.keybind_frame,
-                                               text=f'clear',
-                                               command=bind_command_factory(clearindex)))
-        self.keybind_buttons[clearindex].grid(column=1, row=clearindex, padx=10, pady=5)
-        self.keybind_labels.append(ttk.Label(self.keybind_frame,
-                                             text=self.settings.bind_names[clearindex],
-                                             background='white'))
-        self.keybind_labels[clearindex].grid(column=2, row=clearindex, padx=10, pady=5)
+        index = self.settings.KEYS
+        self.keybind_buttons.append(ttk.Button(
+            self.keybind_frame, text=f'clear', command=bind_command_factory(index)))
+        self.keybind_buttons[index].grid(column=1, row=index, padx=10, pady=5)
+        self.keybind_labels.append(ttk.Label(
+            self.keybind_frame, text=self.settings.bind_names[index], background='white'))
+        self.keybind_labels[index].grid(column=2, row=index, padx=10, pady=5)
         
         # display options
         ttk.Label(self.tab1, text='display options', font="tkDefaultFont 14 bold").pack()
@@ -91,71 +93,73 @@ class App(tk.Tk):
         self.key_display_frame = ttk.Frame(self.tab1)
         self.key_display_frame.pack()
         self.key_display_radios = []
-        self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='key numbers', 
-                                                      command=self.update_display_settings,
-                                                      value='key numbers', variable=self.key_display_var))
-        self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='key binds', 
-                                                      command=self.update_display_settings,
-                                                      value='key binds', variable=self.key_display_var))
-        self.key_display_radios.append(tk.Radiobutton(self.key_display_frame, text='aliases', 
-                                                      command=self.update_display_settings,
-                                                      value='aliases', variable=self.key_display_var))
+        self.key_display_radios.append(tk.Radiobutton(
+            self.key_display_frame, text='key numbers', command=self.update_display_settings,
+            value='key numbers', variable=self.key_display_var))
+        self.key_display_radios.append(tk.Radiobutton(
+            self.key_display_frame, text='key binds', command=self.update_display_settings,
+            value='key binds', variable=self.key_display_var))
+        self.key_display_radios.append(tk.Radiobutton(
+            self.key_display_frame, text='aliases', command=self.update_display_settings,
+            value='aliases', variable=self.key_display_var))
         for radio_button in self.key_display_radios:
             radio_button.pack(anchor='w')
         
         
         self.font_size_frame = ttk.Frame(self.tab1)
         self.font_size_frame.pack()
-        self.font_size_button = ttk.Button(self.font_size_frame, text='set font size', 
-                                           command=self.font_size_dialog)
+        self.font_size_button = ttk.Button(
+            self.font_size_frame, text='set font size', command=self.font_size_dialog)
         self.font_size_button.grid(row=0, column=0, padx=10, pady=5)
-        self.font_size_label = ttk.Label(self.font_size_frame, text=str(self.settings.font_size), 
-                                         background='white')
+        self.font_size_label = ttk.Label(
+            self.font_size_frame, text=str(self.settings.font_size), background='white')
         self.font_size_label.grid(row=0, column=1, padx=10, pady=5)
         
         self.do_colour_var = tk.BooleanVar(self, self.settings.do_colour)
-        self.colour_check = tk.Checkbutton(self.tab1, text='colour keys', 
-                                           command=self.update_display_settings, 
-                                           variable=self.do_colour_var)
+        self.colour_check = tk.Checkbutton(
+            self.tab1, text='colour keys', command=self.update_display_settings, 
+            variable=self.do_colour_var)
         self.colour_check.pack()
         
         # behavior options
         ttk.Label(self.tab1, text='behavior', font="tkDefaultFont 14 bold").pack()
 
         self.do_full_release_var = tk.BooleanVar(self, self.settings.do_full_release)
-        self.full_release_check = tk.Checkbutton(self.tab1, text='ignore mistakes after full release',
-                                                 command=self.update_display_settings,
-                                                 variable=self.do_full_release_var)
+        self.full_release_check = tk.Checkbutton(
+            self.tab1, text='ignore mistakes after full release', 
+            command=self.update_display_settings, variable=self.do_full_release_var)
         self.full_release_check.pack()
 
         self.release_delay_frame = ttk.Frame(self.tab1)
         self.release_delay_frame.pack()
-        self.release_delay_button = ttk.Button(self.release_delay_frame, text='set delay',
-                                               command=self.release_delay_dialog)
+        self.release_delay_button = ttk.Button(
+            self.release_delay_frame, text='set delay', command=self.release_delay_dialog)
         self.release_delay_button.grid(row=0, column=0, padx=10, pady=5)
-        self.release_delay_label = ttk.Label(self.release_delay_frame, 
-                                             text=str(self.settings.release_seconds),
-                                             background='white')
+        self.release_delay_label = ttk.Label(
+            self.release_delay_frame, text=str(self.settings.release_seconds), background='white')
         self.release_delay_label.grid(row=0, column=1, padx=10, pady=5)
 
         # periphery mode
         ttk.Label(self.tab1, text='periphery mode', font='tkDefaultFont 14 bold').pack()
         self.periphery_mode_enabled = tk.BooleanVar(self, self.settings.periphery_mode_enabled)
-        self.periphery_mode_enabled_check = tk.Checkbutton(self.tab1, text='enable periphery mode',
-                                                           command=self.update_display_settings,
-                                                           variable=self.periphery_mode_enabled)
+        self.periphery_mode_enabled_check = tk.Checkbutton(
+            self.tab1, text='enable periphery mode',
+            command=self.update_display_settings,
+            variable=self.periphery_mode_enabled)
         self.periphery_mode_enabled_check.pack()
 
         # sound options
         ttk.Label(self.tab1, text='sound', font='tkDefaultFont 14 bold').pack()
         self.sound_enabled = tk.BooleanVar(self, self.settings.sound_enabled)
-        self.sound_enabled_check = tk.Checkbutton(self.tab1, text='enable sound',
-                                                  command=self.update_sound_settings,
-                                                  variable=self.sound_enabled)
+        self.sound_enabled_check = tk.Checkbutton(
+            self.tab1, text='enable sound', command=self.update_sound_settings,
+            variable=self.sound_enabled)
         self.sound_enabled_check.pack()
-        ttk.Label(self.tab1, justify='center',
-                  text='see settings.yaml to modify rules \nfor periphery mode and sound',
-                  font='tkDefaultFont 8').pack()
+        # settings info
+        ttk.Label(
+            self.tab1, justify='center',
+            text='see settings.yaml to modify rules \nfor periphery mode and sound',
+            font='tkDefaultFont 8').pack()
 
         # canvas
         self.canvas_frame = Canvas_Frame(self.settings, self.tab2, width=400, height=650)
@@ -167,6 +171,7 @@ class App(tk.Tk):
         self.refresh_hooks()
         self.update_display_settings()
         self.protocol('WM_DELETE_WINDOW', self.on_close)
+
         
     def update_display_settings(self):
         self.settings.key_display_method = self.key_display_var.get()
@@ -177,12 +182,14 @@ class App(tk.Tk):
         logging.info(f'current colour mode: {self.settings.do_colour}')
         logging.info(f'current full release mode: {self.settings.do_full_release}')
         logging.info(f'periphery mode enabled: {self.settings.periphery_mode_enabled}')
+        # toggle color buttons
         if self.settings.do_colour:
             for colour_button in self.colour_buttons:
                 colour_button.grid()
         else:
             for colour_button in self.colour_buttons:
                 colour_button.grid_remove()
+        # toggle alias entries
         if self.settings.key_display_method == 'aliases':
             for entry in self.alias_entries:
                 entry.grid()
@@ -197,14 +204,17 @@ class App(tk.Tk):
             self.release_delay_label.grid_remove()
         self.canvas_frame.refresh()
 
+
     def update_sound_settings(self):
         self.settings.sound_enabled = self.sound_enabled.get()
+
 
     def on_entry_write(self, keyindex):
         self.alias_entries[keyindex].delete(self.ENTRY_LIMIT, 'end')
         self.settings.aliases[keyindex] = self.alias_vars[keyindex].get()
         self.canvas_frame.configure(width=self.canvas_frame.get_max_linewidth() + self.settings.font_size)
             
+
     def bind_key(self, keyindex):
         # if key in self.settings.bind_names:
         #     old_position = self.settings.bind_names.index(key)
@@ -223,6 +233,7 @@ class App(tk.Tk):
             logging.info('no input registered, no bind_names were set')
             return False
             
+
         if isinstance(event, mouse.ButtonEvent):
             code = event.button
             name = MOUSE_BUTTON_NAMES[code]
@@ -239,14 +250,17 @@ class App(tk.Tk):
         logging.debug(f'current bind_names: {self.settings.bind_names}')
         return True
         
+
     def disable_keybind_buttons(self):
         for button in chain(self.keybind_buttons, self.colour_buttons):
             button['state'] = tk.DISABLED
         return
+
     
     def enable_keybind_buttons(self):
         for button in chain(self.keybind_buttons, self.colour_buttons):
             button['state'] = tk.NORMAL
+
         
     def refresh_hooks(self):
         kb.unhook_all()
@@ -255,6 +269,7 @@ class App(tk.Tk):
                 on_mouse_button(code, self.handle_event)
             elif code:
                 hook_scan_code(code, self.handle_event)
+
                 
     def handle_event(self, event):
         keyindex = self.find_keyindex(event)
@@ -299,6 +314,7 @@ class App(tk.Tk):
         logging.debug(f'updated last_keyindex: {self.last_keyindex}')
         logging.debug(f'done handling event')
         return
+
     
     def find_keyindex(self, event):
         if isinstance(event, mouse.ButtonEvent):
@@ -306,6 +322,7 @@ class App(tk.Tk):
         else:
             code = event.scan_code
         return self.settings.bind_codes.index(code)
+
         
     def check_for_mistake(self, keyindex):
         logging.debug(f'checking for mistakes')
@@ -332,6 +349,7 @@ class App(tk.Tk):
                 self.canvas_frame.insert_mistake(mistake)
         return
     
+
     def colour_dialog(self, keyindex):
         colour = tk.simpledialog.askstring('input', 'colour hexcode')
         if is_hexcode(colour):
@@ -341,6 +359,7 @@ class App(tk.Tk):
             self.colour_buttons[keyindex].config(bg=colour)
             self.settings.colours[keyindex] = colour
             
+
     def font_size_dialog(self):
         font_size = tk.simpledialog.askinteger('input', 'font size', parent=self)
         if font_size and 0 < font_size:
@@ -349,6 +368,7 @@ class App(tk.Tk):
             self.canvas_frame.refresh()
         else:
             logging.info('font size input is not positive')
+
 
     def release_delay_dialog(self):
         release_seconds = tk.simpledialog.askfloat('input', 'delay in seconds', parent=self)
@@ -360,6 +380,7 @@ class App(tk.Tk):
         else:
             logging.info('release period is not positive')
         
+
     def on_close(self):
         self.settings.save()
         self.destroy()
