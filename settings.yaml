@@ -7,6 +7,8 @@ display:
   key_display_method: key numbers
   line_spacing: 1.5
   relative_pad_left: 0.5
+  min_width: 0
+  min_height: 680
 keys:
   aliases:
   - ring
@@ -19,18 +21,22 @@ keys:
   - 32
   - 57
   - 41
+  - 16
   bind_names:
   - a
   - s
   - d
   - space
   - '`'
+  - q
   colours:
   - '#DC0014'
   - '#FF8C0A'
   - '#00C1C1'
   - '#2832E6'
   count: 4
+analysis:
+  enabled: true
 periphery_mode:
   background_colour: '#000000'
   decay_ms: 400

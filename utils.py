@@ -1,5 +1,6 @@
 
 from itertools import chain
+import logging
 import re
 
 

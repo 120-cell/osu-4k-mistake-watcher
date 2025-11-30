@@ -43,9 +43,8 @@ class Canvas_Frame(ttk.Frame):
         
     def draw_text_mistake(self, mistake):
         current_y = len(self.canvas_lines) * self.settings.line_spacing * self.settings.font_size
-        new_line = mistake.create_canvas_line(self.canvas, 
-                                              self.settings.relative_pad_left * self.settings.font_size, 
-                                              current_y)
+        new_line = mistake.create_canvas_line(
+            self.canvas, self.settings.relative_pad_left * self.settings.font_size, current_y)
         self.canvas_lines.append(new_line)
         self.canvas.config(scrollregion=self.canvas.bbox('all'))
         self.canvas.yview_moveto(1)
@@ -120,7 +119,8 @@ class Canvas_Frame(ttk.Frame):
             
     def refresh(self):
         logging.info('refreshing canvas')
-        self.configure(width=self.get_max_linewidth() + self.settings.font_size)
+        width = max(self.settings.min_width, self.get_max_linewidth() + self.settings.font_size)
+        self.configure(width=width)
         self.canvas.delete('all')
         self.canvas_lines = []
         if self.settings.periphery_mode_enabled:
