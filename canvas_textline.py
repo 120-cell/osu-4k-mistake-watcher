@@ -7,6 +7,7 @@ class Canvas_Textline():
         self.texts = []
         self.width = 0
         
+        
     def add_text(self, text, fill='black'):
         new_text = self.canvas.create_text(self.x+self.width, self.y, 
                                            text=text, anchor='nw', fill=fill, 
@@ -15,5 +16,11 @@ class Canvas_Textline():
         bbox = self.canvas.bbox(new_text)
         self.width += bbox[2] - bbox[0]
         
+
     def get_height(self):
         return max([self.canvas.bbox(text)[3] - self.canvas.bbox(text)[1] for text in self.texts])
+
+
+    def delete(self):
+        for text in self.texts:
+            self.canvas.delete(text)

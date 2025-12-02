@@ -1,5 +1,6 @@
-import yaml
 import logging
+import math
+import yaml
 
 SETTINGS_PATH = 'settings.yaml'
 
@@ -42,6 +43,7 @@ class Setting_Handler:
         self.periphery_rules = settings_data['periphery_mode']['rules']
         self.sound_enabled = settings_data['sound']['enabled']
         self.sound_rules = settings_data['sound']['rules']
+
 
     def save(self):
         settings_data = {

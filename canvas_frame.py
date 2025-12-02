@@ -1,8 +1,8 @@
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from collections import deque
 from datetime import datetime, time, timedelta
 import logging
+import math
 from playsound import playsound
 import re
 import tkinter as tk
@@ -21,9 +21,10 @@ class Canvas_Frame(ttk.Frame):
         self.canvas.bind('<Enter>', self.bind_to_mousewheel)
         self.canvas.bind('<Leave>', self.unbind_to_mousewheel)
 
-        self.mistakes = deque(maxlen=1000)
+        self.mistakes = []
+        self.n_lines, _ = self.calc_height()
         self.canvas_lines = []
-        self.canvas_y = 0
+        self.y_scroll = 0
         
         self.default_background_colour = 'white'
         if (self.settings.periphery_mode_enabled):
@@ -32,27 +33,44 @@ class Canvas_Frame(ttk.Frame):
         self.sound_scheduler = BackgroundScheduler()
         self.sound_scheduler.start()
     
+
     def insert_mistake(self, mistake):
         self.mistakes.append(mistake)
         if self.settings.periphery_mode_enabled:
             self.draw_colour_mistake(mistake)
-        else:
-            self.draw_text_mistake(mistake)
+        elif self.y_scroll >= len(self.mistakes) - self.n_lines - 1:
+                self.scroll(+1)
         if self.settings.sound_enabled:
             self.play_sounds(mistake)
         
-    def draw_text_mistake(self, mistake):
-        current_y = len(self.canvas_lines) * self.settings.line_spacing * self.settings.font_size
+
+    def draw_text_mistake(self, mistake, line_y):
+        px_y = line_y * self.settings.line_spacing * self.settings.font_size
         new_line = mistake.create_canvas_line(
-            self.canvas, self.settings.relative_pad_left * self.settings.font_size, current_y)
-        self.canvas_lines.append(new_line)
-        self.canvas.config(scrollregion=self.canvas.bbox('all'))
-        self.canvas.yview_moveto(1)
+            self.canvas, self.settings.relative_pad_left * self.settings.font_size, px_y)
+        return new_line
+
 
     def draw_colour_mistake(self, mistake):
         for rule in self.settings.periphery_rules:
             if re.search(rule['regex'], mistake.get_mistake_text()):
                 self.flash_background(rule['colour'])
+
+
+    def draw_lines(self, line_offset=0):
+        n_lines = max(0, self.n_lines - line_offset)
+        lines = []
+        # deleting lines individually rather than with canvas.delete('all')
+        # as a workaround to avoid flickering when inserting mistakes.
+        # Apparently the mainloop keeps running when scroll() is called via insert_mistake()
+        # from the app object. This isn't an issue when it's called by an event handled 
+        # directly by the canvas_frame, e.g. when using the mouse wheel to scroll.
+        for i, mistake in enumerate(self.mistakes[self.y_scroll : self.y_scroll + n_lines]):
+            lines.append(self.draw_text_mistake(mistake, i))
+            if i < len(self.canvas_lines):
+                self.canvas_lines[i].delete()
+        self.canvas_lines = lines
+
 
     def flash_background(self, hex_colour):
         self.current_flash_id = datetime.now().timestamp()
@@ -82,12 +100,14 @@ class Canvas_Frame(ttk.Frame):
 
             self.after(step * delay, update_colour)
             
+
     def play_sounds(self, mistake):
         for rule in self.settings.sound_rules:
             if re.search(rule['regex'], mistake.get_mistake_text()):
                 run_date = datetime.now() + timedelta(milliseconds=rule['delay_ms'])
                 self.sound_scheduler.add_job(playsound, 'date', run_date=run_date, 
                                              args=(f"sounds/{rule['filename']}",))
+
 
     def bind_to_mousewheel(self, event):
         # windows
@@ -96,6 +116,7 @@ class Canvas_Frame(ttk.Frame):
         self.canvas.bind_all('<Button-4>', self.on_mousewheel)
         self.canvas.bind_all('<Button-5>', self.on_mousewheel)
     
+
     def unbind_to_mousewheel(self, event):
         # windows
         self.canvas.unbind_all('<MouseWheel>')
@@ -103,33 +124,50 @@ class Canvas_Frame(ttk.Frame):
         self.canvas.unbind_all('<Button-4>')
         self.canvas.unbind_all('<Button-5>')
     
+
     def on_mousewheel(self, event):
         # windows
         if not event.delta == 0:
-            self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
+            self.scroll(int(-event.delta/120))
         # linux
         if event.num == 4:
-            self.canvas.yview_scroll(-1, 'units')
+            self.scroll(-1)
         elif event.num == 5:
-            self.canvas.yview_scroll(1, 'units')
-            
+            self.scroll(+1)
+
+
+    def scroll(self, line_delta):
+        max_y_scroll = max(0, len(self.mistakes) - self.n_lines)
+        self.y_scroll = min(max_y_scroll, max(0, self.y_scroll + line_delta))
+        self.draw_lines()
+
+
     def clear(self):
         self.mistakes = []
         self.refresh()
             
+
     def refresh(self):
         logging.info('refreshing canvas')
         width = max(self.settings.min_width, self.get_max_linewidth() + self.settings.font_size)
-        self.configure(width=width)
+        self.n_lines, height = self.calc_height()
+        self.configure(width=width, height=height)
         self.canvas.delete('all')
         self.canvas_lines = []
         if self.settings.periphery_mode_enabled:
             self.set_background_colour(self.settings.periphery_background_colour)
         else:
             self.set_background_colour(self.default_background_colour)
-            for mistake in self.mistakes:
-                self.draw_text_mistake(mistake)
+            self.draw_lines()
             
+
+    def calc_height(self):
+        line_spacing_px = self.settings.line_spacing * self.settings.font_size
+        d_lines = math.ceil((self.settings.min_height + self.settings.font_size) / line_spacing_px)
+        height_px = line_spacing_px * d_lines - self.settings.font_size
+        return d_lines - 1, height_px
+
+
     def get_max_linewidth(self):
         canvas = tk.Canvas(self)
         # possible longest line widths
@@ -147,5 +185,6 @@ class Canvas_Frame(ttk.Frame):
         logging.debug(f'possible max line widths: {widths}')
         return max(widths)
     
+
     def set_background_colour(self, hex_colour):
         self.canvas.configure(background=hex_colour)

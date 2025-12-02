@@ -1,7 +1,6 @@
 
 from datetime import datetime
 import keyboard as kb
-import math
 import mouse
 from itertools import chain
 import logging
@@ -180,11 +179,9 @@ class App(tk.Tk):
             font='tkDefaultFont 8').pack()
 
         # canvas
-        line_spacing_px = self.settings.line_spacing * self.settings.font_size
-        lines = (self.settings.min_height + self.settings.font_size) / line_spacing_px
-        height = line_spacing_px * math.ceil(lines) - self.settings.font_size
         self.canvas_frame = Canvas_Frame(
-            self.settings, self.tab2, width=self.settings.min_width, height=height)
+            self.settings, self.tab2, width=1, height=1)
+        self.canvas_frame.refresh()
         self.canvas_frame.grid(row=2, column=0, sticky='nw')
         self.canvas_frame.grid_rowconfigure(0, weight=1)
         self.canvas_frame.grid_columnconfigure(0, weight=1)
