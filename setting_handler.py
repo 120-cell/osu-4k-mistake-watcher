@@ -60,6 +60,8 @@ class SettingHandler:
                 'relative_pad_left': self.relative_pad_left,
                 'line_spacing': self.line_spacing,
                 'do_colour': self.do_colour,
+                'min_width': self.min_width,
+                'min_height': self.min_height
             },
             'behavior': {
                 'do_full_release': self.do_full_release,
