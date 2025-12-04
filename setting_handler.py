@@ -4,7 +4,7 @@ import yaml
 
 SETTINGS_PATH = 'settings.yaml'
 
-class Setting_Handler:
+class SettingHandler:
     def __init__(self, settings_path=SETTINGS_PATH):
         self.settings_path = settings_path
         self._load_settings()
@@ -20,7 +20,7 @@ class Setting_Handler:
         except FileNotFoundError:
             logging.warning(f"'{self.settings_path}' not found or is empty.")
 
-        self.KEYS = settings_data['keys']['count']
+        self.n_keys = settings_data['keys']['count']
         self.bind_names = settings_data['keys']['bind_names']
         self.bind_codes = settings_data['keys']['bind_codes']
         self.colours = settings_data['keys']['colours']
@@ -48,7 +48,7 @@ class Setting_Handler:
     def save(self):
         settings_data = {
             'keys': {
-                'count': self.KEYS,
+                'count': self.n_keys,
                 'bind_names': self.bind_names,
                 'bind_codes': self.bind_codes,
                 'colours': self.colours,

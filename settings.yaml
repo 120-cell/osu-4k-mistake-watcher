@@ -36,7 +36,7 @@ keys:
   - '#2832E6'
   count: 4
 analysis:
-  enabled: true
+  enabled: false
 periphery_mode:
   background_colour: '#000000'
   decay_ms: 400

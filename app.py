@@ -1,5 +1,5 @@
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import keyboard as kb
 import mouse
 from itertools import chain
@@ -10,7 +10,7 @@ import tkinter.ttk as ttk
 from tkinter import simpledialog
 
 from mistake import Keylock, Repeat, Skip
-from canvas_frame import Canvas_Frame
+from canvas_frame import CanvasFrame
 from utils import modular_range, is_hexcode
 from input_utils import MOUSE_BUTTON_NAMES, workaround_read_event
 from input_utils import hook_scan_code, on_mouse_button
@@ -23,8 +23,10 @@ class App(tk.Tk):
         self.settings = settings
         self.title('4k mistake watcher')
         self.last_keyindex = None
-        self.pressed = [False] * self.settings.KEYS
+        self.pressed = [False] * self.settings.n_keys
         self.full_release_time = None
+        self.analysis_active = False
+        self.clear_analysis()
         
         self.tab_control = ttk.Notebook(self)
         self.tab1 = ttk.Frame(self.tab_control)
@@ -37,6 +39,7 @@ class App(tk.Tk):
         
         ttk.Label(self.tab1, text='key binds', font="tkDefaulFont 14 bold").pack()
         
+        # keybinds
         self.keybind_frame = ttk.Frame(self.tab1)
         self.keybind_frame.pack()
         
@@ -54,7 +57,7 @@ class App(tk.Tk):
         bind_command_factory = lambda i: (lambda: self.bind_key(i))
         colour_command_factory = lambda i: (lambda: self.colour_dialog(i))
         entry_command_factory = lambda i: (lambda *args: self.on_entry_write(i))
-        for keyindex in range(self.settings.KEYS):
+        for keyindex in range(self.settings.n_keys):
             self.colour_buttons.append(tk.Button(
                 self.keybind_frame,
                 background=self.settings.colours[keyindex],
@@ -78,7 +81,7 @@ class App(tk.Tk):
             self.alias_entries[keyindex].grid(column=3, row=keyindex, padx=10, pady=5)
             
         # clear keybind
-        index = self.settings.KEYS
+        index = self.clear_index = self.settings.n_keys
         self.keybind_buttons.append(ttk.Button(
             self.keybind_frame, text=f'clear', command=bind_command_factory(index)))
         self.keybind_buttons[index].grid(column=1, row=index, padx=10, pady=5)
@@ -86,7 +89,7 @@ class App(tk.Tk):
             self.keybind_frame, text=self.settings.bind_names[index], background='white'))
         self.keybind_labels[index].grid(column=2, row=index, padx=10, pady=5)
         # toggle analysis keybind
-        index += 1
+        index = self.analysis_index = index + 1
         self.analysis_keybind_button = ttk.Button(
             self.keybind_frame, text=f'clear', command=bind_command_factory(index))
         self.keybind_buttons.append(self.analysis_keybind_button)
@@ -179,8 +182,7 @@ class App(tk.Tk):
             font='tkDefaultFont 8').pack()
 
         # canvas
-        self.canvas_frame = Canvas_Frame(
-            self.settings, self.tab2, width=1, height=1)
+        self.canvas_frame = CanvasFrame(self.settings, self.tab2, width=1, height=1)
         self.canvas_frame.refresh()
         self.canvas_frame.grid(row=2, column=0, sticky='nw')
         self.canvas_frame.grid_rowconfigure(0, weight=1)
@@ -201,8 +203,9 @@ class App(tk.Tk):
         logging.info(f'current display method: {self.settings.key_display_method}')
         logging.info(f'current colour mode: {self.settings.do_colour}')
         logging.info(f'current full release mode: {self.settings.do_full_release}')
+        logging.info(f'analysis enabled: {self.settings.analysis_enabled}')
         logging.info(f'periphery mode enabled: {self.settings.periphery_mode_enabled}')
-        # toggle color buttons
+        # toggle colour buttons
         if self.settings.do_colour:
             for colour_button in self.colour_buttons:
                 colour_button.grid()
@@ -216,13 +219,17 @@ class App(tk.Tk):
         else:
             for entry in self.alias_entries:
                 entry.grid_remove()
-        # toggle analysis toggle button
+        # toggle analysis button and display
         if self.settings.analysis_enabled:
             self.analysis_keybind_button.grid()
             self.analysis_keybind_label.grid()
+            self.canvas_frame.draw_analysis(self.presses_ms, self.releases_ms)
         else:
             self.analysis_keybind_button.grid_remove()
             self.analysis_keybind_label.grid_remove()
+            self.canvas_frame.barlines = []
+            self.analysis_active = False
+        # toggle full release button
         if self.settings.do_full_release:
             self.release_delay_button.grid()
             self.release_delay_label.grid()
@@ -259,7 +266,6 @@ class App(tk.Tk):
         if event is None:
             logging.info('no input registered, no bind_names were set')
             return False
-            
 
         if isinstance(event, mouse.ButtonEvent):
             code = event.button
@@ -302,12 +308,19 @@ class App(tk.Tk):
         keyindex = self.find_keyindex(event)
         logging.debug(f'registered keyindex {keyindex}')
         
-        # keyindex KEYS clears the canvas
-        if keyindex == self.settings.KEYS:
+        # clear
+        if keyindex == self.clear_index:
             if event.event_type == kb.KEY_DOWN or event.event_type == mouse.DOWN:
                 self.canvas_frame.clear()
-            logging.debug(f'done handling canvas clear event')
+                self.clear_analysis()
+                logging.debug(f'done handling canvas clear event')
             return
+        # toggle analysis
+        if keyindex == self.analysis_index:
+            if event.event_type == kb.KEY_DOWN or event.event_type == mouse.DOWN:
+                self.analysis_active = not self.analysis_active
+            return
+
         # releases do not trigger mistakes
         if event.event_type == kb.KEY_UP or event.event_type == mouse.UP:
             logging.debug(f'it\'s a release event')
@@ -316,6 +329,8 @@ class App(tk.Tk):
             if not any(self.pressed):
                 self.full_release_time = datetime.now()
                 logging.debug(f'all keys released, recorded time {self.full_release_time}')
+            if self.settings.analysis_enabled and self.analysis_active:
+                self.release_analysis(keyindex) 
             logging.debug(f'done handling release event')
             return
         # repeated keydown events due to holding are not registered
@@ -334,13 +349,72 @@ class App(tk.Tk):
                 return
             logging.debug(f'not enough time has passed since full release, continuing')
             
-        self.check_for_mistake(keyindex)
+        mistake_types = self.check_for_mistake(keyindex)
+        if self.settings.analysis_enabled and self.analysis_active:
+            self.press_analysis(keyindex, mistake_types)
+
         self.pressed[keyindex] = True
         self.last_keyindex = keyindex
+
         logging.debug(f'updated current pressed: {self.pressed}')
         logging.debug(f'updated last_keyindex: {self.last_keyindex}')
         logging.debug(f'done handling event')
         return
+
+    
+    def clear_analysis(self):
+        n_keys = self.settings.n_keys
+        # time before next key is pressed
+        self.presses_ms = [0] * n_keys
+        # time before current key is released
+        self.releases_ms = [0] * n_keys
+        self.n_press_samples = [0] * n_keys
+        self.n_release_samples = [0] * n_keys
+        self.press_times = [None] * n_keys
+        self.last_press_time = None
+
+
+    def press_analysis(self, keyindex, mistake_types):
+        n_keys = self.settings.n_keys
+        i = (keyindex - 1) % n_keys
+        if self.last_press_time and not (mistake_types[1] or mistake_types[2]):
+            delta_ms = (datetime.now() - self.last_press_time) / timedelta(milliseconds=1)
+            self.presses_ms[i], self.n_press_samples[i] = (
+                 self.adjust_average(self.presses_ms[i], self.n_press_samples[i], delta_ms))
+            # initialize the averages based on the first key
+            if self.n_press_samples[i] == 1:
+                self.presses_ms = [self.presses_ms[i]] * n_keys
+                self.n_press_samples = [1] * n_keys
+                self.releases_ms = [self.presses_ms[i] * 3/2] * n_keys
+                self.n_release_samples = [1] * n_keys
+        self.last_press_time = datetime.now()
+        self.press_times[keyindex] = datetime.now()
+        self.canvas_frame.draw_analysis(self.presses_ms, self.releases_ms)
+        
+
+    def release_analysis(self, keyindex):
+        n_keys = self.settings.n_keys
+        i = keyindex
+        if self.press_times[i]:
+            delta_ms = (datetime.now() - self.press_times[i]) / timedelta(milliseconds=1)
+            self.releases_ms[i], self.n_release_samples[i] = (
+                self.adjust_average(self.releases_ms[i], self.n_release_samples[i], delta_ms))
+            # initialize the averages based on the first key
+            if self.n_release_samples[i] == 1:
+                self.presses_ms = [self.releases_ms[i]] * n_keys
+                self.n_press_samples = [1] * n_keys
+                self.releases_ms = [self.releases_ms[i]] * n_keys
+                self.n_release_samples = [1] * n_keys
+        self.canvas_frame.draw_analysis(self.presses_ms, self.releases_ms)
+            
+            
+    def adjust_average(self, average, n_samples, added_value):
+        if not n_samples:
+            return added_value, 1
+        # outlier filtering
+        if added_value < 2 * average:
+            return (n_samples * average + added_value) / (n_samples + 1), (n_samples + 1)
+        return average, n_samples
 
     
     def find_keyindex(self, event):
@@ -356,25 +430,29 @@ class App(tk.Tk):
         logging.debug(f'currently pressed: {self.pressed}')
         logging.debug(f'current keyindex: {keyindex}')
         logging.debug(f'last keyindex: {self.last_keyindex}')
-        two_back = (keyindex - 2) % self.settings.KEYS
+        two_back = (keyindex - 2) % self.settings.n_keys
+        mistake_types = [False] * 3
         # keylock
         if self.pressed[two_back]:
             logging.debug(f'{two_back}-{keyindex} keylock')
             mistake = Keylock(self.settings, [two_back, keyindex])
             self.canvas_frame.insert_mistake(mistake)
+            mistake_types[0] = True
         # repeat
         if keyindex == self.last_keyindex:
             logging.debug(f'{keyindex} repeat')
             mistake = Repeat(self.settings, keyindex)
             self.canvas_frame.insert_mistake(mistake)
+            mistake_types[1] = True
         # skip
         elif self.last_keyindex is not None:
-            skipped = list(modular_range(self.settings.KEYS, self.last_keyindex + 1, keyindex))
+            skipped = list(modular_range(self.settings.n_keys, self.last_keyindex + 1, keyindex))
             if skipped:
                 logging.debug(f'skipped keys: {skipped}')
                 mistake = Skip(self.settings, skipped)
                 self.canvas_frame.insert_mistake(mistake)
-        return
+                mistake_types[2] = True
+        return mistake_types
     
 
     def colour_dialog(self, keyindex):
