@@ -64,7 +64,7 @@ class App(tk.Tk):
                 command=colour_command_factory(keyindex)))
             self.colour_buttons[keyindex].grid(column=0, row=keyindex, padx=10, pady=5)
             self.keybind_buttons.append(ttk.Button(
-                self.keybind_frame,
+                self.keybind_frame, width=12,
                 text=f'key {keyindex+1}',
                 command=bind_command_factory(keyindex)))
             self.keybind_buttons[keyindex].grid(column=1, row=keyindex, padx=10, pady=5)
@@ -83,7 +83,7 @@ class App(tk.Tk):
         # clear keybind
         index = self.clear_index = self.settings.n_keys
         self.keybind_buttons.append(ttk.Button(
-            self.keybind_frame, text=f'clear', command=bind_command_factory(index)))
+            self.keybind_frame, width=12, text=f'clear', command=bind_command_factory(index)))
         self.keybind_buttons[index].grid(column=1, row=index, padx=10, pady=5)
         self.keybind_labels.append(ttk.Label(
             self.keybind_frame, text=self.settings.bind_names[index], background='white'))
@@ -91,7 +91,8 @@ class App(tk.Tk):
         # toggle analysis keybind
         index = self.analysis_index = index + 1
         self.analysis_keybind_button = ttk.Button(
-            self.keybind_frame, text=f'clear', command=bind_command_factory(index))
+            self.keybind_frame, width=12, text=f'toggle analysis', 
+            command=bind_command_factory(index))
         self.keybind_buttons.append(self.analysis_keybind_button)
         self.analysis_keybind_button.grid(column=1, row=index, padx=10, pady=5)
         self.analysis_keybind_label = ttk.Label(
