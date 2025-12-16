@@ -25,7 +25,6 @@ class App(tk.Tk):
         self.last_keyindex = None
         self.pressed = [False] * self.settings.n_keys
         self.full_release_time = None
-        self.analysis_active = False
         self.clear_analysis()
         
         self.tab_control = ttk.Notebook(self)
@@ -88,18 +87,6 @@ class App(tk.Tk):
         self.keybind_labels.append(ttk.Label(
             self.keybind_frame, text=self.settings.bind_names[index], background='white'))
         self.keybind_labels[index].grid(column=2, row=index, padx=10, pady=5)
-        # toggle analysis keybind
-        index = self.analysis_index = index + 1
-        self.analysis_keybind_button = ttk.Button(
-            self.keybind_frame, width=12, text=f'toggle analysis', 
-            command=bind_command_factory(index))
-        self.keybind_buttons.append(self.analysis_keybind_button)
-        self.analysis_keybind_button.grid(column=1, row=index, padx=10, pady=5)
-        self.analysis_keybind_label = ttk.Label(
-            self.keybind_frame, text=self.settings.bind_names[index], background='white')
-        self.keybind_labels.append(self.analysis_keybind_label)
-        self.analysis_keybind_label.grid(column=2, row=index, padx=10, pady=5)
-        
         
         # display options
         ttk.Label(self.tab1, text='display options', font="tkDefaultFont 14 bold").pack()
@@ -220,17 +207,11 @@ class App(tk.Tk):
         else:
             for entry in self.alias_entries:
                 entry.grid_remove()
-        # toggle analysis button and display
+        # toggle analysis display
         if self.settings.analysis_enabled:
-            self.analysis_keybind_button.grid()
-            self.analysis_keybind_label.grid()
             self.canvas_frame.draw_analysis(self.presses_ms, self.releases_ms)
-            self.analysis_active = True
         else:
-            self.analysis_keybind_button.grid_remove()
-            self.analysis_keybind_label.grid_remove()
             self.canvas_frame.barlines = []
-            self.analysis_active = False
         # toggle full release button
         if self.settings.do_full_release:
             self.release_delay_button.grid()
@@ -317,11 +298,6 @@ class App(tk.Tk):
                 self.clear_analysis()
                 logging.debug(f'done handling canvas clear event')
             return
-        # toggle analysis
-        if keyindex == self.analysis_index:
-            if event.event_type == kb.KEY_DOWN or event.event_type == mouse.DOWN:
-                self.analysis_active = not self.analysis_active
-            return
 
         # releases do not trigger mistakes
         if event.event_type == kb.KEY_UP or event.event_type == mouse.UP:
@@ -331,7 +307,7 @@ class App(tk.Tk):
             if not any(self.pressed):
                 self.full_release_time = datetime.now()
                 logging.debug(f'all keys released, recorded time {self.full_release_time}')
-            if self.settings.analysis_enabled and self.analysis_active:
+            if self.settings.analysis_enabled:
                 self.release_analysis(keyindex) 
             logging.debug(f'done handling release event')
             return
@@ -352,7 +328,7 @@ class App(tk.Tk):
             logging.debug(f'not enough time has passed since full release, continuing')
             
         mistake_types = self.check_for_mistake(keyindex)
-        if self.settings.analysis_enabled and self.analysis_active:
+        if self.settings.analysis_enabled:
             self.press_analysis(keyindex, mistake_types)
 
         self.pressed[keyindex] = True
