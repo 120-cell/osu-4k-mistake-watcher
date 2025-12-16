@@ -1,9 +1,12 @@
+
+
 class CanvasLine():
     def __init__(self, settings, canvas, y):
         self.settings = settings
         self.canvas = canvas
+        self.height = self.settings.line_spacing * self.settings.font_size
         self.y = y
-        self.y_px = y * self.settings.line_spacing * self.settings.font_size
+        self.y_px = y * self.height
 
     
     def delete(self):
@@ -51,12 +54,11 @@ class CanvasBarline(CanvasLine):
         if total == 0:
             values = [1] * len(values)
             total = len(values)
-        height = self.settings.line_spacing * self.settings.font_size
         x_px = 0
         for value, colour in zip(values, colours):
             width = canvas.winfo_width() * value / total
             self.rects.append(self.canvas.create_rectangle(
-                x_px, self.y_px, x_px + width, self.y_px + height, fill=colour, width=0))
+                x_px, self.y_px, x_px + width, self.y_px + self.height, fill=colour, width=0))
             x_px += width
     
 
@@ -74,3 +76,26 @@ class CanvasDivider(CanvasLine):
     
     def delete(self):
         self.canvas.delete(self.rect)
+
+
+class CanvasScale(CanvasLine):
+    def __init__(self, settings, canvas, values, colour, stroke, prominence, y):
+        super().__init__(settings, canvas, y)
+        y0 = self.y_px
+        y3 = y0 + self.height
+        y1 = y0 + prominence * self.height
+        y2 = y3 - prominence * self.height
+        if any(value < 0 or value > 1 for value in values):
+            raise ValueError('values must be between 0 and 1')
+        values = [value * canvas.winfo_width() for value in values]
+        self.rects = [(
+                canvas.create_rectangle(
+                    value - stroke / 2, y0, value + stroke / 2, y1, fill=colour, width=0),
+                canvas.create_rectangle(
+                    value - stroke / 2, y2, value + stroke / 2, y3, fill=colour, width=0))
+                for value in values]
+    
+    def delete(self):
+        for rect1, rect2 in self.rects:
+            self.canvas.delete(rect1)
+            self.canvas.delete(rect2)

@@ -8,7 +8,7 @@ import re
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from canvas_line import CanvasBarline, CanvasDivider
+from canvas_line import CanvasBarline, CanvasDivider, CanvasScale
 from mistake import Keylock, Skip
 from utils import modular_range
 
@@ -170,6 +170,9 @@ class CanvasFrame(ttk.Frame):
 
         # dividers
         dividers = []
+        dividers.append(CanvasDivider(self.settings, self.canvas, 'black', 2, 0))
+        scale = [n / n_keys for n in range(1, n_keys + 1)]
+        dividers.append(CanvasScale(self.settings, self.canvas, scale, 'black', 2, 1/4, 0))
         dividers.append(CanvasDivider(self.settings, self.canvas, 'black', 2, 1))
         dividers.append(CanvasDivider(self.settings, self.canvas, 'black', 2, 3))
         for divider in self.dividers:
