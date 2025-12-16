@@ -1,3 +1,5 @@
+analysis:
+  enabled: false
 behavior:
   do_full_release: true
   release_seconds: 2
@@ -6,9 +8,9 @@ display:
   font_size: 18
   key_display_method: key numbers
   line_spacing: 1.5
-  relative_pad_left: 0.5
-  min_width: 0
   min_height: 680
+  min_width: 0
+  relative_pad_left: 0.5
 keys:
   aliases:
   - ring
@@ -35,8 +37,6 @@ keys:
   - '#00C1C1'
   - '#2832E6'
   count: 4
-analysis:
-  enabled: false
 periphery_mode:
   background_colour: '#000000'
   decay_ms: 400

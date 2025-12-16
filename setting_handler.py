@@ -67,6 +67,9 @@ class SettingHandler:
                 'do_full_release': self.do_full_release,
                 'release_seconds': self.release_seconds,
             },
+            'analysis': {
+                'enabled': self.analysis_enabled,
+            },
             'periphery_mode': {
                 'enabled': self.periphery_mode_enabled,
                 'decay_ms': self.periphery_decay_ms,
