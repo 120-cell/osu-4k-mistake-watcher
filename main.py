@@ -19,7 +19,11 @@ def main():
     os.chdir(dirname)
     settings = SettingHandler(SETTINGS_PATH)
     app = App(settings)
-    app.mainloop()
+    try:
+        app.mainloop()
+    except KeyboardInterrupt:
+        logging.info('KeyboardInterrupt')
+        app.on_close()
 
     
 if __name__ == '__main__':
