@@ -72,8 +72,8 @@ class SettingHandler:
             },
             'analysis': {
                 'enabled': self.analysis_enabled,
-                'divider_stroke': self.analysis_enabled,
-                'scale_marking_height': self.scale_marking_height,
+                'divider_stroke': self.divider_stroke,
+                'scale_mark_prominence': self.scale_mark_prominence,
             },
             'periphery_mode': {
                 'enabled': self.periphery_mode_enabled,
