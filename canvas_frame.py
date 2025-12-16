@@ -169,12 +169,15 @@ class CanvasFrame(ttk.Frame):
         self.barlines = lines
 
         # dividers
+        stroke = self.settings.divider_stroke
+        mark_height = self.settings.scale_mark_prominence
         dividers = []
-        dividers.append(CanvasDivider(self.settings, self.canvas, 'black', 2, 0))
+        dividers.append(CanvasDivider(self.settings, self.canvas, 'black', stroke, 0))
         scale = [n / n_keys for n in range(1, n_keys + 1)]
-        dividers.append(CanvasScale(self.settings, self.canvas, scale, 'black', 2, 1/4, 0))
-        dividers.append(CanvasDivider(self.settings, self.canvas, 'black', 2, 1))
-        dividers.append(CanvasDivider(self.settings, self.canvas, 'black', 2, 3))
+        dividers.append(CanvasScale(
+            self.settings, self.canvas, scale, 'black', stroke, mark_height, 0))
+        dividers.append(CanvasDivider(self.settings, self.canvas, 'black', stroke, 1))
+        dividers.append(CanvasDivider(self.settings, self.canvas, 'black', stroke, 3))
         for divider in self.dividers:
             divider.delete()
         self.dividers = dividers

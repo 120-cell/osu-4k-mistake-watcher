@@ -34,9 +34,12 @@ class SettingHandler:
         self.min_width = settings_data['display']['min_width']
         self.min_height = settings_data['display']['min_height']
 
+        self.analysis_enabled = settings_data['analysis']['enabled']
+        self.divider_stroke = settings_data['analysis']['divider_stroke']
+        self.scale_mark_prominence = settings_data['analysis']['scale_mark_prominence']
+
         self.do_full_release = settings_data['behavior']['do_full_release']
         self.release_seconds = settings_data['behavior']['release_seconds']
-        self.analysis_enabled = settings_data['analysis']['enabled']
         self.periphery_mode_enabled = settings_data['periphery_mode']['enabled']
         self.periphery_decay_ms = settings_data['periphery_mode']['decay_ms']
         self.periphery_background_colour = settings_data['periphery_mode']['background_colour']
@@ -69,6 +72,8 @@ class SettingHandler:
             },
             'analysis': {
                 'enabled': self.analysis_enabled,
+                'divider_stroke': self.analysis_enabled,
+                'scale_marking_height': self.scale_marking_height,
             },
             'periphery_mode': {
                 'enabled': self.periphery_mode_enabled,

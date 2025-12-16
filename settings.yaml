@@ -1,5 +1,7 @@
 analysis:
+  divider_stroke: 2
   enabled: false
+  scale_mark_prominence: 0.25
 behavior:
   do_full_release: true
   release_seconds: 2
