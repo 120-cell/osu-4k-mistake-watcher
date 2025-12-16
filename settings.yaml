@@ -23,14 +23,14 @@ keys:
   - 32
   - 57
   - 41
-  - 16
+  - 59
   bind_names:
   - a
   - s
   - d
   - space
   - '`'
-  - q
+  - f1
   colours:
   - '#DC0014'
   - '#FF8C0A'

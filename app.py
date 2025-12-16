@@ -225,6 +225,7 @@ class App(tk.Tk):
             self.analysis_keybind_button.grid()
             self.analysis_keybind_label.grid()
             self.canvas_frame.draw_analysis(self.presses_ms, self.releases_ms)
+            self.analysis_active = True
         else:
             self.analysis_keybind_button.grid_remove()
             self.analysis_keybind_label.grid_remove()
